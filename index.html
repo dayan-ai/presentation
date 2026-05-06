@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Growth Camp — Strategic Journey to Graduation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+
+<style>
+/* ============================================================
+   CSS VARIABLES & RESET
+   ============================================================ */
+:root {
+  --bg-primary:    #080c0e;
+  --bg-secondary:  #0d1317;
+  --bg-card:       #111820;
+  --bg-card-alt:   #0f1a20;
+
+  --accent-green:  #22c55e;
+  --accent-amber:  #f59e0b;
+  --accent-gold:   #d4a843;
+  --accent-dim:    #2a3a30;
+
+  --text-primary:  #e8ecef;
+  --text-secondary:#8a9aaa;
+  --text-muted:    #4a5a6a;
+  --text-gold:     #d4a843;
+
+  --border:        rgba(255,255,255,0.07);
+  --border-accent: rgba(34,197,94,0.25);
+
+  --font-display:  'Bebas Neue', sans-serif;
+  --font-body:     'Barlow', sans-serif;
+  --font-mono:     'DM Mono', monospace;
+
+  --transition:    0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  --radius:        6px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  cursor: default;
+}
+
+/* ============================================================
+   LOADING SCREEN
+   ============================================================ */
+#loader {
+  position: fixed; inset: 0;
+  background: var(--bg-primary);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+#loader.hidden { opacity: 0; visibility: hidden; }
+
+.loader-logo {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 6rem);
+  letter-spacing: 0.12em;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.loader-logo span { color: var(--accent-green); }
+
+.loader-bar-wrap {
+  width: 260px;
+  height: 2px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.loader-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent-green), var(--accent-amber));
+  border-radius: 99px;
+  animation: loadProgress 2.2s ease forwards;
+}
+@keyframes loadProgress { to { width: 100%; } }
+
+.loader-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   SLIDE ENGINE
+   ============================================================ */
+#deck {
+  position: fixed; inset: 0;
+  overflow: hidden;
+}
+
+.slide {
+  position: absolute; inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(24px, 5vw, 80px);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(30px);
+  transition: opacity var(--transition), transform var(--transition);
+  overflow: hidden;
+}
+.slide.active {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateY(0);
+}
+.slide.exit-up {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+
+/* Ambient grid background */
+.slide::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.slide-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1100px;
+}
+
+/* ============================================================
+   PROGRESS BAR (top)
+   ============================================================ */
+#progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-green), var(--accent-amber));
+  z-index: 1000;
+  transition: width 0.45s ease;
+  box-shadow: 0 0 12px rgba(34,197,94,0.5);
+}
+
+/* ============================================================
+   NAV DOTS
+   ============================================================ */
+#nav-dots {
+  position: fixed;
+  right: clamp(12px, 2.5vw, 28px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 500;
+}
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.dot.active {
+  background: var(--accent-green);
+  box-shadow: 0 0 8px rgba(34,197,94,0.7);
+  transform: scale(1.4);
+}
+.dot:hover { background: var(--text-secondary); }
+
+/* ============================================================
+   ARROW NAVIGATION
+   ============================================================ */
+#nav-arrows {
+  position: fixed;
+  bottom: clamp(20px, 4vh, 40px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 16px;
+  z-index: 500;
+}
+.nav-btn {
+  width: 44px; height: 44px;
+  border: 1px solid var(--border);
+  background: rgba(13,19,23,0.85);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-btn:hover {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+  background: rgba(34,197,94,0.08);
+}
+.nav-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+/* ============================================================
+   SLIDE COUNTER
+   ============================================================ */
+#slide-counter {
+  position: fixed;
+  bottom: clamp(20px, 4vh, 40px);
+  right: clamp(12px, 2.5vw, 28px);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  letter-spacing: 0.15em;
+  z-index: 500;
+}
+#slide-counter span { color: var(--text-secondary); }
+
+/* ============================================================
+   TYPOGRAPHY UTILITIES
+   ============================================================ */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: clamp(0.6rem, 1.2vw, 0.72rem);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent-green);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 24px; height: 1px;
+  background: var(--accent-green);
+}
+
+.display-title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 9vw, 8rem);
+  letter-spacing: 0.04em;
+  line-height: 0.95;
+  color: var(--text-primary);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 4.5rem);
+  letter-spacing: 0.05em;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  font-size: clamp(0.85rem, 1.5vw, 1rem);
+  color: var(--text-secondary);
+  font-weight: 300;
+  line-height: 1.65;
+  max-width: 560px;
+}
+
+.accent-green { color: var(--accent-green); }
+.accent-amber { color: var(--accent-amber); }
+.accent-gold  { color: var(--accent-gold); }
+
+/* ============================================================
+   CARD COMPONENT
+   ============================================================ */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: clamp(16px, 2.5vw, 28px);
+  transition: border-color 0.3s ease;
+}
+.card:hover { border-color: var(--border-accent); }
+
+.card-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.card-value {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3.5vw, 2.8rem);
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.card-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  font-weight: 300;
+}
+
+/* ============================================================
+   GRID LAYOUTS
+   ============================================================ */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(12px, 2vw, 20px);
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(12px, 2vw, 20px);
+}
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(10px, 1.5vw, 16px);
+}
+
+/* ============================================================
+   PROGRESS BAR COMPONENT
+   ============================================================ */
+.skill-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+.skill-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.skill-name {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.skill-pct {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+.skill-track {
+  height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.skill-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent-green), var(--accent-amber));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;
+}
+.active .skill-fill { transform: scaleX(1); }
+
+/* ============================================================
+   TAG / BADGE
+   ============================================================ */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.tag.green {
+  border-color: rgba(34,197,94,0.3);
+  color: var(--accent-green);
+  background: rgba(34,197,94,0.06);
+}
+.tag.amber {
+  border-color: rgba(245,158,11,0.3);
+  color: var(--accent-amber);
+  background: rgba(245,158,11,0.06);
+}
+.tag.gold {
+  border-color: rgba(212,168,67,0.3);
+  color: var(--accent-gold);
+  background: rgba(212,168,67,0.06);
+}
+
+/* ============================================================
+   DIVIDER
+   ============================================================ */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: clamp(16px, 3vh, 28px) 0;
+}
+
+/* ============================================================
+   ICON BOX
+   ============================================================ */
+.icon-box {
+  width: 44px; height: 44px;
+  border-radius: var(--radius);
+  background: rgba(34,197,94,0.08);
+  border: 1px solid rgba(34,197,94,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+  margin-bottom: 14px;
+  flex-shrink: 0;
+}
+.icon-box.amber {
+  background: rgba(245,158,11,0.08);
+  border-color: rgba(245,158,11,0.2);
+}
+.icon-box.gold {
+  background: rgba(212,168,67,0.08);
+  border-color: rgba(212,168,67,0.2);
+}
+.icon-box.red {
+  background: rgba(239,68,68,0.08);
+  border-color: rgba(239,68,68,0.2);
+}
+
+/* ============================================================
+   TIMELINE
+   ============================================================ */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.timeline-item {
+  display: flex;
+  gap: 20px;
+  padding-bottom: 24px;
+  position: relative;
+}
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+.timeline-node {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  box-shadow: 0 0 8px rgba(34,197,94,0.5);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.timeline-node.amber { background: var(--accent-amber); box-shadow: 0 0 8px rgba(245,158,11,0.5); }
+.timeline-node.gold  { background: var(--accent-gold);  box-shadow: 0 0 8px rgba(212,168,67,0.5); }
+.timeline-line {
+  width: 1px;
+  flex: 1;
+  background: var(--border);
+  margin-top: 6px;
+}
+.timeline-content { padding-top: 0; }
+.timeline-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.timeline-text {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   EISENHOWER MATRIX
+   ============================================================ */
+.matrix-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  aspect-ratio: 1.4;
+}
+.matrix-cell {
+  border-radius: var(--radius);
+  padding: 18px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+}
+.matrix-cell::after {
+  content: attr(data-q);
+  position: absolute;
+  bottom: 8px; right: 10px;
+  font-family: var(--font-display);
+  font-size: 3rem;
+  color: rgba(255,255,255,0.03);
+  line-height: 1;
+}
+.matrix-cell.q1 { background: rgba(34,197,94,0.06);  border-color: rgba(34,197,94,0.2); }
+.matrix-cell.q2 { background: rgba(245,158,11,0.06); border-color: rgba(245,158,11,0.2); }
+.matrix-cell.q3 { background: rgba(239,68,68,0.06);  border-color: rgba(239,68,68,0.2); }
+.matrix-cell.q4 { background: rgba(107,114,128,0.06);border-color: rgba(107,114,128,0.2); }
+.matrix-q-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.matrix-cell.q1 .matrix-q-label { color: var(--accent-green); }
+.matrix-cell.q2 .matrix-q-label { color: var(--accent-amber); }
+.matrix-cell.q3 .matrix-q-label { color: #ef4444; }
+.matrix-cell.q4 .matrix-q-label { color: var(--text-muted); }
+.matrix-title { font-weight: 600; font-size: 0.82rem; color: var(--text-primary); }
+.matrix-sub   { font-size: 0.72rem; color: var(--text-muted); line-height: 1.4; }
+
+/* ============================================================
+   DISC RADAR / BARS
+   ============================================================ */
+.disc-bars { display: flex; flex-direction: column; gap: 12px; }
+.disc-row   { display: flex; align-items: center; gap: 14px; }
+.disc-key {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  letter-spacing: 0.06em;
+  width: 28px;
+  flex-shrink: 0;
+}
+.disc-key.d { color: var(--accent-green); }
+.disc-key.i { color: var(--accent-amber); }
+.disc-key.s { color: var(--accent-gold); }
+.disc-key.c { color: #64748b; }
+.disc-label { font-size: 0.78rem; color: var(--text-secondary); width: 90px; flex-shrink: 0; }
+.disc-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.disc-fill {
+  height: 100%;
+  border-radius: 99px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.4s;
+}
+.active .disc-fill { transform: scaleX(1); }
+.disc-fill.d { background: var(--accent-green); }
+.disc-fill.i { background: var(--accent-amber); }
+.disc-fill.s { background: var(--accent-gold); }
+.disc-fill.c { background: #64748b; }
+.disc-pct {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  width: 32px;
+  text-align: right;
+}
+
+/* ============================================================
+   ROADMAP STEPS
+   ============================================================ */
+.roadmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  position: relative;
+  padding: 20px 0;
+}
+.roadmap-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  position: relative;
+}
+.roadmap-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 18px;
+  right: -50%;
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+}
+.roadmap-node {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  position: relative;
+  z-index: 1;
+}
+.roadmap-node.done {
+  background: rgba(34,197,94,0.15);
+  border: 1px solid var(--accent-green);
+  color: var(--accent-green);
+  box-shadow: 0 0 12px rgba(34,197,94,0.3);
+}
+.roadmap-node.active-node {
+  background: rgba(245,158,11,0.15);
+  border: 1px solid var(--accent-amber);
+  color: var(--accent-amber);
+  box-shadow: 0 0 12px rgba(245,158,11,0.3);
+}
+.roadmap-node.future {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.roadmap-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  max-width: 90px;
+}
+
+/* ============================================================
+   ACHIEVEMENT SCREEN
+   ============================================================ */
+.glow-ring {
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-gold);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  margin: 0 auto 28px;
+  box-shadow: 0 0 40px rgba(212,168,67,0.25), 0 0 80px rgba(212,168,67,0.1);
+  animation: pulsRing 3s ease-in-out infinite;
+}
+@keyframes pulsRing {
+  0%, 100% { box-shadow: 0 0 40px rgba(212,168,67,0.25), 0 0 80px rgba(212,168,67,0.1); }
+  50%       { box-shadow: 0 0 60px rgba(212,168,67,0.45), 0 0 120px rgba(212,168,67,0.2); }
+}
+.glow-ring::before {
+  content: '';
+  position: absolute; inset: -12px;
+  border-radius: 50%;
+  border: 1px solid rgba(212,168,67,0.12);
+}
+.achievement-icon { font-size: 4.5rem; line-height: 1; }
+
+/* ============================================================
+   CHALLENGE CARD
+   ============================================================ */
+.challenge-big {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.challenge-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.challenge-stat-num {
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 8vw, 6rem);
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+.challenge-stat-unit {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 300;
+}
+
+/* ============================================================
+   SMART GOALS TABLE
+   ============================================================ */
+.smart-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.smart-row:last-child { border-bottom: none; }
+.smart-letter {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--accent-green);
+  letter-spacing: 0.04em;
+  width: 32px;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 2px;
+}
+.smart-label { font-weight: 600; font-size: 0.82rem; color: var(--text-primary); margin-bottom: 3px; }
+.smart-body  { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5; font-weight: 300; }
+
+/* ============================================================
+   SLIDE-SPECIFIC: LANDING (#s0)
+   ============================================================ */
+#s0 {
+  text-align: center;
+  flex-direction: column;
+}
+#s0 .slide-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(16px, 3vh, 28px);
+}
+#s0 .display-title {
+  font-size: clamp(4rem, 12vw, 10rem);
+  position: relative;
+}
+#s0 .display-title .sub-word {
+  display: block;
+  font-size: clamp(1.2rem, 3vw, 2.2rem);
+  letter-spacing: 0.35em;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-weight: 300;
+  margin-top: 8px;
+}
+.cta-btn {
+  padding: 14px 36px;
+  background: transparent;
+  border: 1px solid var(--accent-green);
+  color: var(--accent-green);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: all 0.3s ease;
+  margin-top: 8px;
+}
+.cta-btn:hover {
+  background: var(--accent-green);
+  color: var(--bg-primary);
+  box-shadow: 0 0 24px rgba(34,197,94,0.35);
+}
+
+.landing-meta {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+.landing-meta-item {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.landing-meta-sep { color: var(--border); }
+
+/* ============================================================
+   LAYOUT: SPLIT (left content + right visual)
+   ============================================================ */
+.split-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(24px, 4vw, 60px);
+  align-items: center;
+  width: 100%;
+}
+.split-layout.left-wide { grid-template-columns: 1.3fr 1fr; }
+.split-layout.right-wide { grid-template-columns: 1fr 1.3fr; }
+
+/* ============================================================
+   PROFILE STATS
+   ============================================================ */
+.profile-stat-row {
+  display: flex;
+  gap: 14px;
+  margin-top: clamp(14px, 2.5vh, 24px);
+}
+.profile-stat {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.profile-stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.profile-stat-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ============================================================
+   RISK ZONE
+   ============================================================ */
+.risk-meter {
+  height: 8px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 99px;
+  overflow: hidden;
+  position: relative;
+  margin: 8px 0 4px;
+}
+.risk-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-amber) 60%, #ef4444 100%);
+  border-radius: 99px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.4s;
+}
+.active .risk-fill { transform: scaleX(1); }
+.risk-marker {
+  position: absolute;
+  top: -3px;
+  height: 14px;
+  width: 2px;
+  background: white;
+  border-radius: 99px;
+  box-shadow: 0 0 6px rgba(255,255,255,0.6);
+}
+
+/* ============================================================
+   Q&A SLIDE
+   ============================================================ */
+#s16 { text-align: center; flex-direction: column; }
+#s16 .slide-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(16px, 3vh, 28px);
+}
+
+/* ============================================================
+   AMBIENT ORBS
+   ============================================================ */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  opacity: 0.12;
+}
+.orb-green { background: var(--accent-green); }
+.orb-amber { background: var(--accent-amber); }
+.orb-gold  { background: var(--accent-gold); }
+
+/* ============================================================
+   SCROLL HINT
+   ============================================================ */
+.scroll-hint {
+  position: fixed;
+  bottom: clamp(20px, 4vh, 40px);
+  left: clamp(12px, 2.5vw, 28px);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.scroll-hint::before {
+  content: '';
+  display: inline-block;
+  width: 16px; height: 1px;
+  background: var(--text-muted);
+}
+
+/* ============================================================
+   SLIDE-SPECIFIC OVERRIDES
+   ============================================================ */
+#s7 .challenge-stat-num,
+#s6 .challenge-stat-num { color: var(--accent-amber); }
+
+#s8 .challenge-stat-num { color: #ef4444; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .split-layout,
+  .split-layout.left-wide,
+  .split-layout.right-wide {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .grid-3 { grid-template-columns: 1fr 1fr; }
+  .grid-4 { grid-template-columns: 1fr 1fr; }
+  .matrix-grid { aspect-ratio: auto; }
+  .roadmap { flex-wrap: wrap; }
+  .roadmap-item { min-width: 80px; }
+  #nav-dots { display: none; }
+}
+
+/* ============================================================
+   ENTER ANIMATIONS (stagger children on .active)
+   ============================================================ */
+.slide.active .anim-child {
+  animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.slide.active .anim-child:nth-child(1) { animation-delay: 0.05s; }
+.slide.active .anim-child:nth-child(2) { animation-delay: 0.13s; }
+.slide.active .anim-child:nth-child(3) { animation-delay: 0.21s; }
+.slide.active .anim-child:nth-child(4) { animation-delay: 0.29s; }
+.slide.active .anim-child:nth-child(5) { animation-delay: 0.37s; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     LOADING SCREEN
+     ============================================================ -->
+<div id="loader">
+  <div class="loader-logo">GROWTH<span>CAMP</span></div>
+  <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
+  <div class="loader-label">Initializing Strategic Framework…</div>
+</div>
+
+<!-- ============================================================
+     PROGRESS BAR
+     ============================================================ -->
+<div id="progress-bar"></div>
+
+<!-- ============================================================
+     NAV DOTS
+     ============================================================ -->
+<div id="nav-dots"></div>
+
+<!-- ============================================================
+     SLIDE COUNTER
+     ============================================================ -->
+<div id="slide-counter"><span id="cur-num">01</span> / <span id="tot-num">17</span></div>
+
+<!-- ============================================================
+     SCROLL HINT
+     ============================================================ -->
+<div class="scroll-hint" id="scroll-hint">Use arrow keys or buttons</div>
+
+<!-- ============================================================
+     NAVIGATION ARROWS
+     ============================================================ -->
+<div id="nav-arrows">
+  <button class="nav-btn" id="btn-prev" title="Previous">&#8592;</button>
+  <button class="nav-btn" id="btn-next" title="Next">&#8594;</button>
+</div>
+
+<!-- ============================================================
+     SLIDE DECK
+     ============================================================ -->
+<div id="deck">
+
+  <!-- ====================================================
+       SLIDE 00 — LANDING
+       ==================================================== -->
+  <section class="slide" id="s0">
+    <div class="orb orb-green" style="width:500px;height:500px;top:-150px;right:-100px;"></div>
+    <div class="orb orb-amber" style="width:300px;height:300px;bottom:-80px;left:-60px;"></div>
+    <div class="slide-inner">
+      <div class="eyebrow anim-child">Hamdan Saeed · Academic Year 2024–25</div>
+      <div class="display-title anim-child">
+        GROWTH<br>CAMP
+        <span class="sub-word">Strategic Journey to Graduation</span>
+      </div>
+      <div class="landing-meta anim-child">
+        <span class="landing-meta-item">2nd Semester</span>
+        <span class="landing-meta-sep">|</span>
+        <span class="landing-meta-item">17 Slides</span>
+        <span class="landing-meta-sep">|</span>
+        <span class="landing-meta-item">Full Roadmap</span>
+      </div>
+      <button class="cta-btn anim-child" onclick="goTo(1)">Begin Presentation &rarr;</button>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       SLIDE 01 — PROFILE OVERVIEW
+       ==================================================== -->
+  <section class="slide" id="s1">
+    <div class="orb orb-green" style="width:400px;height:400px;top:-80px;left:-80px;"></div>
+    <div class="slide-inner">
+      <div class="split-layout left-wide">
+        <div>
+          <div class="eyebrow anim-child">Slide 01</div>
+          <div class="section-title anim-child">Profile<br><span class="accent-green">Overview</span></div>
+          <p class="subtitle anim-child" style="margin-top:14px;">
+            A developing professional entering the structured growth environment of university — equipped with strong internal drive and ready for strategic direction.
+          </p>
+          <div class="profile-stat-row anim-child">
+            <div class="profile-stat">
+              <div class="profile-stat-label">Name</div>
+              <div class="profile-stat-value">Hamdan Saeed</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat-label">Level</div>
+              <div class="profile-stat-value accent-amber">2nd Semester</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card anim-child" style="margin-bottom:12px;">
+            <div class="icon-box">&#9650;</div>
+            <div class="card-label">Core Strength</div>
+            <div class="card-value accent-green">Self-Efficacy</div>
+            <div class="card-desc">Strong belief in personal capacity to execute and succeed.</div>
+          </div>
+          <div class="card anim-child">
+            <div class="icon-box amber">&#9711;</div>
+            <div class="card-label">Development Area</div>
+            <div class="card-value" style="font-size:1.6rem;">Direction Clarity</div>
+            <div class="card-desc">Defining a structured path to convert potential into outcomes.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       SLIDE 02 — OBJECTIVE DEFINITION
+       ==================================================== -->
+  <section class="slide" id="s2">
+    <div class="orb orb-amber" style="width:350px;height:350px;bottom:-60px;right:-60px;"></div>
+    <div class="slide-inner">
+      <div class="eyebrow anim-child">Slide 02</div>
+      <div class="section-title anim-child" style="margin-bottom:clamp(20px,4vh,36px);">
+        Objective<br><span class="accent-amber">Definition</span>
+      </div>
+      <div class="grid-3 anim-child">
+        <div class="card" style="border-color:rgba(34,197,94,0.2);">
+          <div class="icon-box">&#127775;</div>
+          <div class="card-label">Primary Goal</div>
+          <div class="card-value" style="font-size:1.4rem;">Graduation</div>
+          <div class="card-desc">Complete the full academic program with strong outcomes.</div>
+        </div>
+        <div class="card" style="border-color:rgba(245,158,11,0.2);">
+          <div class="icon-box amber">&#128200;</div>
+          <div class="card-label">Personal Goal</div>
+          <div class="card-value" style="font-size:1.4rem;">Direction</div>
+          <div class="card-desc">Leave university with a clear professional identity and path.</div>
+        </div>
+        <div class="card" style="border-color:rgba(212,168,67,0.2);">
+          <div class="icon-box gold">&#9881;</div>
+          <div class="card-label">Strategic Output</div>
+          <div class="card-value" style="font-size:1.4rem;">Growth</div>
+          <div class="card-desc">Measurable skill and mindset development each semester.</div>
+        </div>
+      </div>
+      <div class="divider anim-child"></div>
+      <div class="anim-child" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span class="tag green">&#10003; Academic Excellence</span>
+        <span class="tag amber">&#10003; Professional Identity</span>
+        <span class="tag gold">&#10003; Strategic Clarity</span>
+        <span class="tag">&#10003; Personal Growth</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       SLIDE 03 — CURRENT POSITION (Reality Check)
+       ==================================================== -->
+  <section class="slide" id="s3">
+    <div class="slide-inner">
+      <div class="split-layout right-wide">
+        <div>
+          <div class="eyebrow anim-child">Slide 03 · Reality Check</div>
+          <div class="section-title anim-child">Current<br><span class="accent-green">Position</span></div>
+          <p class="subtitle anim-child" style="margin-top:14px;">
+            A candid audit of where Hamdan stands today — strengths to leverage and gaps to close.
+          </p>
+        </div>
+        <div>
+          <div class="anim-child" style="display:flex;flex-direction:column;gap:12px;">
+            <div style="margin-bottom:4px;"><span class="tag green">&#9650; Strengths</span></div>
+            <div class="skill-row">
+              <div class="skill-meta"><span class="skill-name">Self-Confidence</span><span class="skill-pct">88%</span></div>
+              <div class="skill-track"><div class="skill-fill" style="--w:0.88;width:88%;"></div></div>
+            </div>
+            <div class="skill-row">
+              <div class="skill-meta"><span class="skill-name">Motivation Level</span><span class="skill-pct">80%</span></div>
+              <div class="skill-track"><div class="skill-fill" style="width:80%;"></div></div>
+            </div>
+            <div class="skill-row">
+              <div class="skill-meta"><span class="skill-name">Social Intelligence</span><span class="skill-pct">74%</span></div>
+              <div class="skill-track"><div class="skill-fill" style="width:74%;"></div></div>
+            </div>
+            <div style="margin-top:8px;margin-bottom:4px;"><span class="tag amber">&#9660; Gap Areas</span></div>
+            <div class="skill-row">
+              <div class="skill-meta"><span class="skill-name">Structured Direction</span><span class="skill-pct">32%</span></div>
+              <div class="skill-track"><div class="skill-fill" style="width:32%;background:linear-gradient(90deg,#f59e0b,#ef4444);"></div></div>
+            </div>
+            <div class="skill-row">
+              <div class="skill-meta"><span class="skill-name">Time Management</span><span class="skill-pct">41%</span></div>
+              <div class="skill-track"><div class="skill-fill" style="width:41%;background:linear-gradient(90deg,#f59e0b,#ef4444);"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       SLIDE 04 — SMART GOALS
+       ==================================================== -->
+  <section class="slide" id="s4">
+    <div class="orb orb-green" style="width:320px;height:320px;bottom:-60px;left:-40px;opacity:0.09;"></div>
+    <div class="slide-inner">
+      <div class="eyebrow anim-child">Slide 04</div>
+      <div class="section-title anim-child" style="margin-bottom:clamp(16px,3vh,28px);">
+        SMART<br><span class="accent-green">Goals</span>
+      </div>
+      <div class="anim-child">
+        <div class="smart-row">
+          <div class="smart-letter">S</div>
+          <div>
+            <div class="smart-label">Specific</div>
+            <div class="smart-body">Complete 2nd semester with a GPA above 3.0 and declare a major elective track by week 8.</div>
+          </div>
+        </div>
+        <div class="smart-row">
+          <div class="smart-letter">M</div>
+          <div>
+            <div class="smart-label">Measurable</div>
+            <div class="smart-body">Track weekly study hours (min 25/week) and submit all assignments on time — 100% completion rate.</div>
+          </div>
+        </div>
+        <div class="smart-row">
+          <div class="smart-letter">A</div>
+          <div>
+            <div class="smart-label">Achievable</div>
+            <div class="smart-body">Leverage existing high self-efficacy. Enroll in one structured planning workshop this semester.</div>
+          </div>
+        </div>
+        <div class="smart-row">
+          <div class="smart-letter">R</div>
+          <div>
+            <div class="smart-label">Relevant</div>
+            <div class="smart-body">Directly aligned with long-term graduation milestone and career identity development.</div>
+          </div>
+        </div>
+        <div class="smart-row">
+          <div class="smart-letter">T</div>
+          <div>
+            <div class="smart-label">Time-Bound</div>
+            <div class="smart-body">All targets scoped to end of Semester 2 — a 16-week execution window.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       SLIDE 05 — CHALLENGE: PROCRASTINATION
+       ==================================================== -->
+  <section class="slide" id="s5">
+    <div class="orb orb-amber" style="width:400px;height:400px;top:-100px;right:-80px;opacity:0.1;"></div>
+    <div class="slide-inner">
+      <div class="split-layout">
+        <div>
+          <div class="eyebrow anim-child">Slide 05 · Key Challenge</div>
+          <div class="section-title anim-child">Procras-<br><span class="accent-amber">tination</span></div>
+          <p class="subtitle anim-child" style="margin-top:14px;">
+            The habit of deferring high-value tasks creates compounding deficit over time — a primary efficiency drain.
+          </p>
+          <div style="margin-top:20px;" class="anim-child">
+            <span class="tag amber">&#9888; High Impact Risk</span>
+          </div>
+        </div>
+        <div class="anim-child">
+          <div class="challenge-big">
+            <div class="card">
+              <div class="card-label">Estimated Time Lost / Week</div>
+              <div class="challenge-stat">
+                <span class="challenge-stat-num">8–12</span>
+                <span class="challenge-stat-unit">hrs / week</span>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-label">Root Causes</div>
+              <div class="timeline" style="margin-top:10px;">
+                <div class="timeline-item">
+                  <div class="timeline-left"><div class="timeline-node amber"></div><div class="timeline-line"></div></div>
+                  <div class="timeline-content"><div class="timeline-text">Unclear task priority — unsure what matters most</div></div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-left"><div class="timeline-node amber"></div><div class="timeline-line"></div></div>
+                  <div class="timeline-content"><div class="timeline-text">Fear of imperfect output leading to avoidance</div></div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-left"><div class="timeline-node amber"></div></div>
+                  <div class="timeline-content"><div class="timeline-text">Digital environment oversaturated with distractions</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       SLIDE 06 — CHALLENGE: PERFECTIONISM
+       ==================================================== -->
+  <section class="slide" id="s6">
+    <div class="orb orb-gold" style="width:350px;height:350px;bottom:-80px;right:-60px;opacity:0.09;"></div>
+    <div class="slide-inner">
+      <div class="split-layout">
+        <div>
+          <div class="eyebrow anim-child">Slide 06 · Key Challenge</div>
+          <div class="section-title anim-child">Perfec-<br><span class="accent-gold">tionism</span></div>
+          <p class="subtitle anim-child" style="margin-top:14px;">
+            The pursuit of flawless output delays execution. Done is often more valuable than perfect in an academic sprint.
+          </p>
+          <div style="margin-top:20px;" class="anim-child">
+            <span class="tag gold">&#9888; Medium-High Risk</span>
+          </div>
+        </div>
+        <div class="anim-child">
+          <div class="challenge-big">
+            <div class="card">
+              <div class="card-label">Productivity Impact</div>
+              <div class="challenge-stat">
+                <span class="challenge-stat-num" style="color:var(--accent-gold);">35</span>
+                <span class="challenge-stat-unit">% output reduction</span>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-label">Reframe Strategy</div>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span style="color:var(--accent-green);font-size:0.8rem;">&#10003;</span>
+                  <span style="font-size:0.8rem;color:var(--text-secondary);">Set "good enough" thresholds for each task type</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span style="color:var(--accent-green);font-size:0.8rem;">&#10003;</span>
+                  <span style="font-size:0.8rem;color:var(--text-secondary);">Time-box drafts — limit revision cycles</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span style="color:var(--accent-green);font-size:0.8rem;">&#10003;</span>
+                  <span style="font-size:0.8rem;color:var(--text-secondary);">Celebrate completion over flawlessness</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       SLIDE 07 — RISK ZONE
+       ==================================================== -->
+  <section class="slide" id="s7">
+    <div class="slide-inner">
+      <div class="eyebrow anim-child">Slide 07 · Risk Assessment</div>
+      <div class="section-title anim-child" style="margin-bottom:clamp(20px,4vh,32px);">
+        Risk <span class="accent-amber">Zone</span>
+      </div>
+      <div class="grid-2 anim-child" style="margin-bottom:clamp(16px,3vh,24px);">
+        <div class="card">
+          <div class="icon-box red" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2);">&#9201;</div>
+          <div class="card-label">Risk 01</div>
+          <div class="card-value" style="font-size:1.6rem;color:#ef4444;">Time Inefficiency</div>
+          <div class="card-desc">Unstructured days lead to low output despite high hours spent in study mode.</div>
+          <div class="risk-meter" style="margin-top:14px;">
+            <div class="risk-fill" style="width:78%;"></div>
+            <div class="risk-marker" style="left:78%;"></div>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-muted);margin-top:4px;">Risk Level · HIGH</div>
+        </div>
+        <div class="card">
+          <div class="icon-box amber">&#128245;</div>
+          <div class="card-label">Risk 02</div>
+          <div class="card-value" style="font-size:1.6rem;">Distractions</div>
+          <div class="card-desc">Social media, digital noise, and low-priority social commitments fragment deep work.</div>
+          <div class="risk-meter" style="margin-top:14px;">
+            <div class="risk-fill" style="width:65%;"></div>
+            <div class="risk-marker" style="left:65%;"></div>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-muted);margin-top:4px;">Risk Level · MEDIUM-HIGH</div>
+        </div>
+      </div>
+      <div class="anim-child" style="display:flex;gap:12px;flex-wrap:wrap;">
+        <span class="tag">&#9432; Combined risk directly undermines GPA and graduation timeline</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       SLIDE 08 — EISENHOWER MATRIX
+       ==================================================== -->
+  <section class="slide" id="s8">
+    <div class="orb orb-green" style="width:280px;height:280px;top:-40px;right:-40px;opacity:0.08;"></div>
+    <div class="slide-inner">
+      <div class="split-layout right-wide" style="align-items:start;gap:clamp(20px,4vw,48px);">
+        <div>
+          <div class="eyebrow anim-child">Slide 08 · Strategic Tool</div>
+          <div class="section-title anim-child">Eisenhower<br><span class="accent-green">Matrix</span></div>
+          <p class="subtitle anim-child" style="margin-top:14px;">
+            A decision framework that separates urgency from importance — the core tool for time prioritization.
+          </p>
+          <div style="margin-top:20px;display:flex;flex-direction:column;gap:8px;" class="anim-child">
+            <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:var(--font-mono);font-size:0.62rem;color:var(--accent-green);">Q1</span><span style="font-size:0.75rem;color:var(--text-secondary);">Do First · Crisis tasks</span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:var(--font-mono);font-size:0.62rem;color:var(--accent-amber);">Q2</span><span style="font-size:0.75rem;color:var(--text-secondary);">Schedule · Growth work</span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:var(--font-mono);font-size:0.62rem;color:#ef4444;">Q3</span><span style="font-size:0.75rem;color:var(--text-secondary);">Delegate · Low-value urgents</span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:var(--font-mono);font-size:0.62rem;color:var(--text-muted);">Q4</span><span style="font-size:0.75rem;color:var(--text-secondary);">Eliminate · Time wasters</span></div>
+          </div>
+        </div>
+        <div class="anim-child" style="width:100%;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-muted);">&#8592; NOT URGENT</span>
+            <span style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-muted);">URGENT &#8594;</span>
+          </div>
+          <div class="matrix-grid">
+            <div class="matrix-cell q1" data-q="Q1">
+              <div class="matrix-q-label">Q1 · Do First</div>
+              <div class="matrix-title">Urgent + Important</div>
+              <div class="matrix-sub">Deadlines, exams, overdue assignments, urgent academic issues</div>
+            </div>
+            <div class="matrix-cell q2" data-q="Q2">
+              <div class="matrix-q-label">Q2 · Schedule</div>
+              <div class="matrix-title">Important, Not Urgent</div>
+              <div class="matrix-sub">Study planning, skill-building, networking, long-term projects</div>
+            </div>
+            <div class="matrix-cell q3" data-q="Q3">
+              <div class="matrix-q-label">Q3 · Delegate</div>
+              <div class="matrix-title">Urgent, Not Important</div>
+              <div class="matrix-sub">Some social obligations, low-value messages, group admin</div>
+            </div>
+            <div class="matrix-cell q4" data-q="Q4">
+              <div class="matrix-q-label">Q4 · Eliminate</div>
+              <div class="matrix-title">Not Urgent · Not Important</div>
+              <div class="matrix-sub">Mindless scrolling, low-value entertainment, passive time</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       SLIDE 09 — DISC BEHAVIORAL ANALYSIS
+       ==================================================== -->
+  <section class="slide" id="s9">
+    <div class="orb orb-amber" style="width:300px;height:300px;top:-60px;left:-40px;opacity:0.09;"></div>
+    <div class="slide-inner">
+      <div class="split-layout">
+        <div>
+          <div class="eyebrow anim-child">Slide 09 · Behavioral Analysis</div>
+          <div class="section-title anim-child">DISC<br><span class="accent-amber">Model</span></div>
+          <p class="subtitle anim-child" style="margin-top:14px;">
+            Understanding the behavioral profile drives smarter strategy — both in how Hamdan works and how he engages others.
+          </p>
+          <div style="margin-top:20px;" class="anim-child">
+            <div class="card" style="border-color:rgba(34,197,94,0.2);">
+              <div class="card-label">Dominant Trait</div>
+              <div class="card-value accent-green" style="font-size:1.5rem;">Dominance + Influence</div>
+              <div class="card-desc">Results-driven and socially persuasive. Channels energy into action and connection.</div>
+            </div>
+          </div>
+        </div>
+        <div class="anim-child">
+          <div class="disc-bars">
+            <div class="disc-row">
+              <div class="disc-key d">D</div>
+              <div class="disc-label">Dominance</div>
+              <div class="disc-track"><div class="disc-fill d" style="width:82%;"></div></div>
+              <div class="disc-pct">82%</div>
+            </div>
+            <div class="disc-row">
+              <div class="disc-key i">I</div>
+              <div class="disc-label">Influence</div>
+              <div class="disc-track"><div class="disc-fill i" style="width:75%;"></div></div>
+              <div class="disc-pct">75%</div>
+            </div>
+            <div class="disc-row">
+              <div class="disc-key s">S</div>
+              <div class="disc-label">Steadiness</div>
+              <div class="disc-track"><div class="disc-fill s" style="width:48%;"></div></div>
+              <div class="disc-pct">48%</div>
+            </div>
+            <div class="disc-row">
+              <div class="disc-key c">C</div>
+              <div class="disc-label">Compliance</div>
+              <div class="disc-track"><div class="disc-fill c" style="width:36%;"></div></div>
+              <div class="disc-pct">36%</div>
+            </div>
+          </div>
+          <div class="divider" style="margin:20px 0;"></div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="font-size:0.78rem;color:var(--text-secondary);"><span class="accent-green">&#10003;</span> &nbsp;Works best with autonomy and clear goals</div>
+            <div style="font-size:0.78rem;color:var(--text-secondary);"><span class="accent-green">&#10003;</span> &nbsp;Energized by team environments and recognition</div>
+            <div style="font-size:0.78rem;color:var(--text-secondary);"><span class="accent-amber">&#9432;</span> &nbsp;Needs structure to channel dominant drive</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       SLIDE 10 — STRATEGIC ALIGNMENT
+       ==================================================== -->
+  <section class="slide" id="s10">
+    <div class="slide-inner">
+      <div class="eyebrow anim-child">Slide 10</div>
+      <div class="section-title anim-child" style="margin-bottom:clamp(20px,4vh,32px);">
+        Strategic <span class="accent-green">Alignment</span>
+      </div>
+      <div class="grid-3 anim-child">
+        <div class="card" style="border-color:rgba(34,197,94,0.2);">
+          <div class="icon-box">&#129504;</div>
+          <div class="card-label">Behavior Profile</div>
+          <div class="card-value" style="font-size:1.3rem;">D+I Dominant</div>
+          <div class="card-desc">Leverage drive and social capital to form strong study networks.</div>
+        </div>
+        <div class="card" style="border-color:rgba(245,158,11,0.2);">
+          <div class="icon-box amber">&#128344;</div>
+          <div class="card-label">Time Framework</div>
+          <div class="card-value" style="font-size:1.3rem;">Eisenhower</div>
+          <div class="card-desc">Pair behavioral energy with structured Q2 time blocks daily.</div>
+        </div>
+        <div class="card" style="border-color:rgba(212,168,67,0.2);">
+          <div class="icon-box gold">&#127919;</div>
+          <div class="card-label">Combined Output</div>
+          <div class="card-value" style="font-size:1.3rem;">Momentum</div>
+          <div class="card-desc">Behavioral clarity × time discipline = compounding academic momentum.</div>
+        </div>
+      </div>
+      <div class="divider anim-child"></div>
+      <div class="anim-child" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <div style="font-size:0.82rem;color:var(--text-secondary);">Alignment Formula:</div>
+        <div style="font-family:var(--font-mono);font-size:0.78rem;">
+          <span class="accent-green">Self-Efficacy</span>
+          <span style="color:var(--text-muted);"> + </span>
+          <span class="accent-amber">DISC Awareness</span>
+          <span style="color:var(--text-muted);"> + </span>
+          <span class="accent-gold">Priority Framework</span>
+          <span style="color:var(--text-muted);"> = </span>
+          <span style="color:var(--text-primary);font-weight:600;">Graduation-Ready Execution</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       SLIDE 11 — FIRST MILESTONE (End of Year 1)
+       ==================================================== -->
+  <section class="slide" id="s11">
+    <div class="orb orb-green" style="width:350px;height:350px;bottom:-80px;left:-60px;opacity:0.09;"></div>
+    <div class="slide-inner">
+      <div class="eyebrow anim-child">Slide 11 · First Milestone</div>
+      <div class="section-title anim-child" style="margin-bottom:clamp(20px,4vh,32px);">
+        End of <span class="accent-green">Year 1</span>
+      </div>
+      <div class="grid-2 anim-child" style="margin-bottom:clamp(16px,3vh,24px);">
+        <div class="card" style="border-color:rgba(34,197,94,0.2);">
+          <div class="card-label">Academic Target</div>
+          <div class="card-value accent-green">GPA 3.0+</div>
+          <div class="card-desc">Complete all Year 1 courses with above-average standing.</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Strategic Wins</div>
+          <div style="display:flex;flex-direction:column;gap:7px;margin-top:8px;">
+            <div style="font-size:0.8rem;color:var(--text-secondary);display:flex;align-items:center;gap:8px;"><span class="accent-green">&#10003;</span>One structured habit system in place</div>
+            <div style="font-size:0.8rem;color:var(--text-secondary);display:flex;align-items:center;gap:8px;"><span class="accent-green">&#10003;</span>Eisenhower Matrix actively used</div>
+            <div style="font-size:0.8rem;color:var(--text-secondary);display:flex;align-items:center;gap:8px;"><span class="accent-green">&#10003;</span>Procrastination episodes reduced 50%</div>
+            <div style="font-size:0.8rem;color:var(--text-secondary);display:flex;align-items:center;gap:8px;"><span class="accent-amber">&#9432;</span>Major direction declared or shortlisted</div>
+          </div>
+        </div>
+      </div>
+      <div class="roadmap anim-child">
+        <div class="roadmap-item">
+          <div class="roadmap-node done">S1</div>
+          <div class="roadmap-label">Semester 1<br><span class="accent-green" style="font-size:0.65rem;">Complete</span></div>
+        </div>
+        <div class="roadmap-item">
+          <div class="roadmap-node active-node">S2</div>
+          <div class="roadmap-label">Semester 2<br><span class="accent-amber" style="font-size:0.65rem;">In Progress</span></div>
+        </div>
+        <div class="roadmap-item">
+          <div class="roadmap-node future">Y2</div>
+          <div class="roadmap-label">Year 2<br><span style="font-size:0.65rem;">Upcoming</span></div>
+        </div>
+        <div class="roadmap-item">
+          <div class="roadmap-node future">Y3</div>
+          <div class="roadmap-label">Year 3<br><span style="font-size:0.65rem;">Development</span></div>
+        </div>
+        <div class="roadmap-item">
+          <div class="roadmap-node future">Y4</div>
+          <div class="roadmap-label">Year 4<br><span style="font-size:0.65rem;">Final Push</span></div>
+        </div>
+        <div class="roadmap-item">
+          <div class="roadmap-node" style="background:rgba(212,168,67,0.15);border-color:var(--accent-gold);color:var(--accent-gold);">&#127891;</div>
+          <div class="roadmap-label">Graduation<br><span class="accent-gold" style="font-size:0.65rem;">Goal</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       SLIDE 12 — DEVELOPMENT PHASE
+       ==================================================== -->
+  <section class="slide" id="s12">
+    <div class="orb orb-amber" style="width:320px;height:320px;top:-60px;right:-50px;opacity:0.09;"></div>
+    <div class="slide-inner">
+      <div class="split-layout">
+        <div>
+          <div class="eyebrow anim-child">Slide 12 · Development Phase</div>
+          <div class="section-title anim-child">Skill<br><span class="accent-amber">Growth</span></div>
+          <p class="subtitle anim-child" style="margin-top:14px;">
+            Years 2–3 shift focus from survival to active skill-building and professional identity formation.
+          </p>
+          <div style="margin-top:20px;" class="anim-child">
+            <div class="card" style="border-color:rgba(245,158,11,0.2);">
+              <div class="card-label">Phase Goal</div>
+              <div class="card-value" style="font-size:1.3rem;color:var(--accent-amber);">Build & Clarify</div>
+              <div class="card-desc">Deepen both academic expertise and personal direction simultaneously.</div>
+            </div>
+          </div>
+        </div>
+        <div class="anim-child">
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="margin-bottom:4px;"><span class="tag amber">&#128200; Skills in Development</span></div>
+            <div class="skill-row">
+              <div class="skill-meta"><span class="skill-name">Academic Research</span><span class="skill-pct">70%</span></div>
+              <div class="skill-track"><div class="skill-fill" style="width:70%;"></div></div>
+            </div>
+            <div class="skill-row">
+              <div class="skill-meta"><span class="skill-name">Critical Thinking</span><span class="skill-pct">78%</span></div>
+              <div class="skill-track"><div class="skill-fill" style="width:78%;"></div></div>
+            </div>
+            <div class="skill-row">
+              <div class="skill-meta"><span class="skill-name">Direction Clarity</span><span class="skill-pct">65%</span></div>
+              <div class="skill-track"><div class="skill-fill" style="width:65%;background:linear-gradient(90deg,var(--accent-amber),var(--accent-gold));"></div></div>
+            </div>
+            <div class="skill-row">
+              <div class="skill-meta"><span class="skill-name">Professional Network</span><span class="skill-pct">55%</span></div>
+              <div class="skill-track"><div class="skill-fill" style="width:55%;background:linear-gradient(90deg,var(--accent-amber),var(--accent-gold));"></div></div>
+            </div>
+            <div class="skill-row">
+              <div class="skill-meta"><span class="skill-name">Time Discipline</span><span class="skill-pct">72%</span></div>
+              <div class="skill-track"><div class="skill-fill" style="width:72%;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       SLIDE 13 — FINAL PHASE
+       ==================================================== -->
+  <section class="slide" id="s13">
+    <div class="slide-inner">
+      <div class="eyebrow anim-child">Slide 13 · Final Phase · Year 4</div>
+      <div class="section-title anim-child" style="margin-bottom:clamp(20px,4vh,32px);">
+        Focused <span class="accent-gold">Execution</span>
+      </div>
+      <div class="grid-3 anim-child">
+        <div class="card" style="border-color:rgba(34,197,94,0.2);">
+          <div class="icon-box">&#127919;</div>
+          <div class="card-label">Academic Priority</div>
+          <div class="card-value" style="font-size:1.3rem;">Thesis &amp; Capstone</div>
+          <div class="card-desc">All energy directed toward high-weight final deliverables.</div>
+        </div>
+        <div class="card" style="border-color:rgba(212,168,67,0.2);">
+          <div class="icon-box gold">&#128101;</div>
+          <div class="card-label">Career Positioning</div>
+          <div class="card-value" style="font-size:1.3rem;">Portfolio Ready</div>
+          <div class="card-desc">Projects, internship experience, and references secured.</div>
+        </div>
+        <div class="card">
+          <div class="icon-box amber">&#9889;</div>
+          <div class="card-label">Mindset</div>
+          <div class="card-value" style="font-size:1.3rem;">Sprint Mode</div>
+          <div class="card-desc">Short execution windows with maximum intensity and focus.</div>
+        </div>
+      </div>
+      <div class="divider anim-child"></div>
+      <div class="anim-child">
+        <div class="skill-row">
+          <div class="skill-meta">
+            <span class="skill-name">Overall Readiness for Graduation</span>
+            <span class="skill-pct">91%</span>
+          </div>
+          <div class="skill-track" style="height:8px;">
+            <div class="skill-fill" style="width:91%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       SLIDE 14 — CRITICAL CHALLENGES (Final Pressures)
+       ==================================================== -->
+  <section class="slide" id="s14">
+    <div class="orb" style="width:300px;height:300px;top:-60px;right:-40px;opacity:0.08;background:#ef4444;"></div>
+    <div class="slide-inner">
+      <div class="eyebrow anim-child">Slide 14 · Critical Challenges</div>
+      <div class="section-title anim-child" style="margin-bottom:clamp(20px,4vh,32px);">
+        Final <span style="color:#ef4444;">Pressures</span>
+      </div>
+      <div class="grid-2 anim-child">
+        <div class="card" style="border-color:rgba(239,68,68,0.2);">
+          <div class="icon-box red">&#128197;</div>
+          <div class="card-label">Academic Pressure</div>
+          <div class="card-value" style="font-size:1.4rem;">Deadline Density</div>
+          <div class="card-desc">Multiple major assessments converge in the final semester, requiring precise time orchestration.</div>
+        </div>
+        <div class="card" style="border-color:rgba(245,158,11,0.2);">
+          <div class="icon-box amber">&#128566;</div>
+          <div class="card-label">Psychological Pressure</div>
+          <div class="card-value" style="font-size:1.4rem;">Performance Anxiety</div>
+          <div class="card-desc">Heightened stakes can trigger old patterns — perfectionism, avoidance, comparison spirals.</div>
+        </div>
+        <div class="card">
+          <div class="icon-box red">&#128270;</div>
+          <div class="card-label">Identity Pressure</div>
+          <div class="card-value" style="font-size:1.4rem;">Post-Grad Clarity</div>
+          <div class="card-desc">Questions about what comes next can distract from executing the present.</div>
+        </div>
+        <div class="card" style="border-color:rgba(34,197,94,0.2);">
+          <div class="icon-box">&#9876;</div>
+          <div class="card-label">Counter-Strategy</div>
+          <div class="card-value accent-green" style="font-size:1.4rem;">Stay in Systems</div>
+          <div class="card-desc">Trust the frameworks built over 4 years. Execute from process, not emotion.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       SLIDE 15 — ACHIEVEMENT: GRADUATION
+       ==================================================== -->
+  <section class="slide" id="s15" style="text-align:center;flex-direction:column;">
+    <div class="orb orb-gold" style="width:500px;height:500px;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.06;"></div>
+    <div class="orb orb-green" style="width:300px;height:300px;bottom:-60px;right:-40px;opacity:0.08;"></div>
+    <div class="slide-inner" style="display:flex;flex-direction:column;align-items:center;gap:clamp(14px,2.5vh,22px);">
+      <div class="eyebrow anim-child" style="justify-content:center;">Slide 15 · Achievement Unlocked</div>
+      <div class="glow-ring anim-child">
+        <div class="achievement-icon">&#127891;</div>
+      </div>
+      <div class="section-title anim-child" style="font-size:clamp(2.5rem,7vw,5.5rem);">
+        GRADUATION<br><span class="accent-gold">ACCOMPLISHED</span>
+      </div>
+      <p class="subtitle anim-child" style="text-align:center;">
+        Hamdan Saeed has navigated the full strategic journey — from unstructured potential to focused professional graduate.
+      </p>
+      <div class="grid-3 anim-child" style="margin-top:8px;width:100%;">
+        <div class="card" style="text-align:left;border-color:rgba(34,197,94,0.2);">
+          <div class="card-label">Challenges Overcome</div>
+          <div class="card-value accent-green">4+</div>
+        </div>
+        <div class="card" style="text-align:left;border-color:rgba(212,168,67,0.2);">
+          <div class="card-label">Semesters Completed</div>
+          <div class="card-value accent-gold">8</div>
+        </div>
+        <div class="card" style="text-align:left;border-color:rgba(245,158,11,0.2);">
+          <div class="card-label">Growth Index</div>
+          <div class="card-value accent-amber">Elite</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       SLIDE 16 — CLOSING / Q&A
+       ==================================================== -->
+  <section class="slide" id="s16">
+    <div class="orb orb-green" style="width:400px;height:400px;top:-100px;left:50%;transform:translateX(-50%);opacity:0.07;"></div>
+    <div class="slide-inner" style="display:flex;flex-direction:column;align-items:center;gap:clamp(16px,3vh,28px);text-align:center;">
+      <div class="eyebrow anim-child" style="justify-content:center;">Slide 16 · Closing</div>
+      <div class="display-title anim-child" style="font-size:clamp(3rem,9vw,7rem);">
+        THANK<br>YOU
+      </div>
+      <p class="subtitle anim-child" style="text-align:center;">
+        <em>"Growth is not a destination — it's the discipline of consistently closing the gap between where you are and where you intend to be."</em>
+      </p>
+      <div class="divider anim-child" style="width:100%;max-width:400px;"></div>
+      <div class="anim-child" style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
+        <span class="tag green">Hamdan Saeed</span>
+        <span class="tag amber">2nd Semester</span>
+        <span class="tag gold">Growth Camp</span>
+      </div>
+      <div class="anim-child" style="margin-top:8px;">
+        <div style="font-family:var(--font-display);font-size:clamp(1.5rem,3vw,2.2rem);letter-spacing:0.18em;color:var(--text-muted);">
+          Q &amp; A
+        </div>
+        <div style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:0.18em;color:var(--text-muted);margin-top:4px;text-transform:uppercase;">
+          Open for questions
+        </div>
+      </div>
+      <button class="cta-btn anim-child" onclick="goTo(0)" style="margin-top:8px;">
+        &#8592; Back to Start
+      </button>
+    </div>
+  </section>
+
+</div><!-- /#deck -->
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+/* ---------------------------------------------------------------
+   STATE
+   --------------------------------------------------------------- */
+const TOTAL   = 17;          // total slides
+let current   = 0;           // active slide index
+let animating = false;       // prevent rapid clicking
+const slides  = document.querySelectorAll('.slide');
+
+/* ---------------------------------------------------------------
+   LOADING SCREEN
+   --------------------------------------------------------------- */
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('loader').classList.add('hidden');
+    goTo(0, true); // show first slide without transition
+  }, 2500);
+});
+
+/* ---------------------------------------------------------------
+   NAVIGATION CORE
+   --------------------------------------------------------------- */
+function goTo(index, instant = false) {
+  if (index < 0 || index >= TOTAL) return;
+  if (animating && !instant) return;
+
+  animating = true;
+
+  const prev = slides[current];
+  const next = slides[index];
+
+  if (!instant) {
+    // Exit current slide upward
+    prev.classList.remove('active');
+    prev.classList.add(index > current ? 'exit-up' : '');
+    setTimeout(() => prev.classList.remove('exit-up'), 700);
+  } else {
+    prev.classList.remove('active');
+  }
+
+  current = index;
+  next.classList.add('active');
+
+  // Update UI
+  updateProgress();
+  updateDots();
+  updateCounter();
+  updateButtons();
+
+  setTimeout(() => { animating = false; }, 700);
+}
+
+function next() { goTo(current + 1); }
+function prev() { goTo(current - 1); }
+
+/* ---------------------------------------------------------------
+   PROGRESS BAR
+   --------------------------------------------------------------- */
+function updateProgress() {
+  const pct = ((current + 1) / TOTAL) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+}
+
+/* ---------------------------------------------------------------
+   NAV DOTS
+   --------------------------------------------------------------- */
+const dotsContainer = document.getElementById('nav-dots');
+
+(function buildDots() {
+  for (let i = 0; i < TOTAL; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    d.title = `Slide ${i + 1}`;
+    d.addEventListener('click', () => goTo(i));
+    dotsContainer.appendChild(d);
+  }
+})();
+
+function updateDots() {
+  document.querySelectorAll('.dot').forEach((d, i) => {
+    d.classList.toggle('active', i === current);
+  });
+}
+
+/* ---------------------------------------------------------------
+   COUNTER
+   --------------------------------------------------------------- */
+function updateCounter() {
+  document.getElementById('cur-num').textContent = String(current + 1).padStart(2, '0');
+  document.getElementById('tot-num').textContent = String(TOTAL).padStart(2, '0');
+}
+
+/* ---------------------------------------------------------------
+   ARROW BUTTONS
+   --------------------------------------------------------------- */
+document.getElementById('btn-prev').addEventListener('click', prev);
+document.getElementById('btn-next').addEventListener('click', next);
+
+function updateButtons() {
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current === TOTAL - 1;
+}
+
+/* ---------------------------------------------------------------
+   KEYBOARD NAVIGATION
+   --------------------------------------------------------------- */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+    e.preventDefault();
+    next();
+  }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    prev();
+  }
+  if (e.key === 'Home') goTo(0);
+  if (e.key === 'End')  goTo(TOTAL - 1);
+});
+
+/* ---------------------------------------------------------------
+   WHEEL / SWIPE NAVIGATION
+   --------------------------------------------------------------- */
+let wheelLock = false;
+document.addEventListener('wheel', (e) => {
+  if (wheelLock) return;
+  e.preventDefault();
+  wheelLock = true;
+  if (e.deltaY > 0) next();
+  else prev();
+  setTimeout(() => { wheelLock = false; }, 900);
+}, { passive: false });
+
+// Touch swipe
+let touchStartY = 0;
+document.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; });
+document.addEventListener('touchend', (e) => {
+  const delta = touchStartY - e.changedTouches[0].clientY;
+  if (Math.abs(delta) > 50) {
+    if (delta > 0) next();
+    else prev();
+  }
+});
+
+/* ---------------------------------------------------------------
+   SCROLL HINT auto-hide
+   --------------------------------------------------------------- */
+setTimeout(() => {
+  const hint = document.getElementById('scroll-hint');
+  if (hint) { hint.style.opacity = '0'; hint.style.transition = 'opacity 0.8s'; }
+}, 5000);
+</script>
+</body>
+</html>
