@@ -1,274 +1,1738 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Growth Camp – Strategic Journey</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Growth Camp – A Strategic Academic Journey</title>
+
+<!-- Google Fonts: Syne (display) + DM Sans (body) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
 
 <style>
-/* =========================
-   GLOBAL STYLES
-========================= */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Segoe UI", sans-serif;
+/* ============================================================
+   CSS CUSTOM PROPERTIES – Design Tokens
+   ============================================================ */
+:root {
+  --bg:         #080c10;
+  --surface:    #0d1117;
+  --surface2:   #131b24;
+  --border:     rgba(255,255,255,0.06);
+  --green:      #39ff84;
+  --green-dim:  #1aff6433;
+  --amber:      #ffb340;
+  --amber-dim:  #ffb34022;
+  --red:        #ff4f5e;
+  --text:       #e8edf3;
+  --text-muted: #6b7a8d;
+  --font-head:  'Syne', sans-serif;
+  --font-body:  'DM Sans', sans-serif;
+  --radius:     12px;
+  --transition: 0.65s cubic-bezier(0.22,1,0.36,1);
 }
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
 
 body {
-    background: #0a0a0a;
-    color: #fff;
-    overflow-x: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  overflow: hidden;          /* slides handle scroll */
+  height: 100vh;
+  width: 100vw;
+  cursor: default;
 }
 
-/* Progress Bar */
-#progressBar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 4px;
-    background: #00ff9f;
-    width: 0%;
-    z-index: 1000;
-}
-
-/* Section Layout */
-.section {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 40px;
-    text-align: center;
-    transition: opacity 0.8s ease, transform 0.8s ease;
-}
-
-.section h1 {
-    font-size: 3rem;
-    margin-bottom: 20px;
-}
-
-.section p {
-    max-width: 600px;
-    opacity: 0.8;
-}
-
-/* Neon Accent */
-.accent {
-    color: #00ff9f;
-}
-
-/* Button */
-button {
-    padding: 12px 25px;
-    margin-top: 20px;
-    border: none;
-    background: #00ff9f;
-    color: #000;
-    font-weight: bold;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: 0.3s;
-}
-
-button:hover {
-    background: #00cc7a;
-}
-
-/* Fade Animation */
-.fade {
-    opacity: 0;
-    transform: translateY(40px);
-}
-
-.fade.active {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* Loading Screen */
+/* ============================================================
+   LOADING SCREEN
+   ============================================================ */
 #loader {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    background: #000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    flex-direction: column;
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+#loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.loader-ring {
+  width: 64px; height: 64px;
+  border: 2px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loader-text {
+  font-family: var(--font-head);
+  font-size: 0.7rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
-.loader-bar {
-    width: 200px;
-    height: 5px;
-    background: #222;
-    margin-top: 15px;
-    overflow: hidden;
+/* ============================================================
+   PROGRESS BAR (top)
+   ============================================================ */
+#progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--green), var(--amber));
+  z-index: 1000;
+  width: 0%;
+  transition: width 0.4s ease;
+  box-shadow: 0 0 10px var(--green);
 }
 
-.loader-fill {
-    width: 0%;
-    height: 100%;
-    background: #00ff9f;
-    animation: loading 2s linear forwards;
+/* ============================================================
+   SLIDE COUNTER
+   ============================================================ */
+#slide-counter {
+  position: fixed;
+  bottom: 28px; right: 32px;
+  font-family: var(--font-head);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  z-index: 1000;
+  user-select: none;
+}
+#slide-counter span { color: var(--green); font-weight: 700; }
+
+/* ============================================================
+   NAV DOTS (side)
+   ============================================================ */
+#nav-dots {
+  position: fixed;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+}
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 0.4;
+}
+.dot.active { background: var(--green); opacity: 1; box-shadow: 0 0 8px var(--green); transform: scale(1.4); }
+
+/* ============================================================
+   NAVIGATION ARROWS
+   ============================================================ */
+.nav-arrow {
+  position: fixed;
+  bottom: 28px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.25s ease;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-arrow:hover { border-color: var(--green); color: var(--green); box-shadow: 0 0 12px var(--green-dim); }
+#btn-prev { left: calc(50% - 56px); }
+#btn-next { left: calc(50% + 14px); }
+
+/* ============================================================
+   SOUND TOGGLE
+   ============================================================ */
+#sound-btn {
+  position: fixed;
+  top: 20px; right: 28px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  z-index: 1000;
+  font-family: var(--font-body);
+  letter-spacing: 0.05em;
+  transition: all 0.25s ease;
+}
+#sound-btn:hover { border-color: var(--amber); color: var(--amber); }
+
+/* ============================================================
+   SLIDE CONTAINER
+   ============================================================ */
+#slides-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
 }
 
-@keyframes loading {
-    to { width: 100%; }
+/* ============================================================
+   INDIVIDUAL SLIDE
+   ============================================================ */
+.slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 80px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity var(--transition), transform var(--transition);
+  pointer-events: none;
+  background: var(--bg);
+  overflow: hidden;
 }
+.slide.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+.slide.exit {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+
+/* ============================================================
+   BACKGROUND MESH / DECORATION
+   ============================================================ */
+.slide::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 80%, rgba(57,255,132,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 20%, rgba(255,179,64,0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* Grid texture overlay */
+.slide::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* ============================================================
+   SLIDE TYPOGRAPHY
+   ============================================================ */
+.slide-tag {
+  font-family: var(--font-head);
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 16px;
+  position: relative; z-index: 1;
+}
+.slide-tag.amber { color: var(--amber); }
+.slide-tag.red   { color: var(--red); }
+
+.slide-title {
+  font-family: var(--font-head);
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 24px;
+  position: relative; z-index: 1;
+  text-align: center;
+}
+.slide-title em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--green), var(--amber));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.slide-subtitle {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: var(--text-muted);
+  font-weight: 300;
+  max-width: 560px;
+  text-align: center;
+  position: relative; z-index: 1;
+}
+
+/* ============================================================
+   GRID LAYOUTS
+   ============================================================ */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  width: 100%;
+  max-width: 900px;
+  position: relative; z-index: 1;
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 900px;
+  position: relative; z-index: 1;
+}
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  width: 100%;
+  max-width: 960px;
+  position: relative; z-index: 1;
+}
+
+/* ============================================================
+   CARD COMPONENT
+   ============================================================ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.card:hover { border-color: rgba(57,255,132,0.2); transform: translateY(-2px); }
+
+.card-icon {
+  font-size: 1.6rem;
+  margin-bottom: 12px;
+  display: block;
+}
+.card-label {
+  font-family: var(--font-head);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.card-value {
+  font-family: var(--font-head);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.card-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+/* card accent line top */
+.card.green::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--green); }
+.card.amber::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--amber); }
+.card.red::before   { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--red); }
+
+/* ============================================================
+   PILL / BADGE
+   ============================================================ */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+.pill.green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(57,255,132,0.2); }
+.pill.amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(255,179,64,0.2); }
+.pill.red   { background: rgba(255,79,94,0.12); color: var(--red); border: 1px solid rgba(255,79,94,0.2); }
+
+/* ============================================================
+   DIVIDER
+   ============================================================ */
+.divider {
+  width: 48px; height: 2px;
+  background: linear-gradient(90deg, var(--green), transparent);
+  margin: 16px auto;
+  position: relative; z-index: 1;
+}
+
+/* ============================================================
+   BIG NUMBER STAT
+   ============================================================ */
+.stat-block {
+  text-align: center;
+  position: relative; z-index: 1;
+}
+.stat-num {
+  font-family: var(--font-head);
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 800;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--green), var(--amber));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.stat-label {
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+/* ============================================================
+   TIMELINE BAR (milestones)
+   ============================================================ */
+.timeline {
+  display: flex;
+  gap: 0;
+  width: 100%;
+  max-width: 860px;
+  position: relative; z-index: 1;
+  align-items: flex-start;
+}
+.timeline-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+.timeline-step::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+}
+.timeline-step:last-child::before { display: none; }
+.timeline-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem;
+  font-family: var(--font-head);
+  font-weight: 700;
+  color: var(--text-muted);
+  z-index: 2;
+  position: relative;
+}
+.timeline-dot.done { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+.timeline-dot.active { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
+.timeline-label {
+  margin-top: 12px;
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 90px;
+  line-height: 1.4;
+}
+.timeline-label strong { display: block; color: var(--text); font-size: 0.8rem; }
+
+/* ============================================================
+   EISENHOWER MATRIX
+   ============================================================ */
+.matrix {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  max-width: 700px;
+  position: relative; z-index: 1;
+}
+.matrix-cell {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  text-align: center;
+}
+.matrix-cell .mc-icon { font-size: 1.5rem; margin-bottom: 8px; }
+.matrix-cell .mc-label {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+.matrix-cell .mc-desc { font-size: 0.75rem; color: var(--text-muted); }
+.matrix-cell.do     { border-color: rgba(57,255,132,0.3); }
+.matrix-cell.do .mc-label { color: var(--green); }
+.matrix-cell.sched  { border-color: rgba(255,179,64,0.3); }
+.matrix-cell.sched .mc-label { color: var(--amber); }
+.matrix-cell.dele   { border-color: rgba(100,160,255,0.3); }
+.matrix-cell.dele .mc-label { color: #64a0ff; }
+.matrix-cell.elim   { border-color: rgba(255,79,94,0.3); }
+.matrix-cell.elim .mc-label { color: var(--red); }
+
+/* ============================================================
+   DISC BARS
+   ============================================================ */
+.disc-bars {
+  width: 100%;
+  max-width: 580px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: relative; z-index: 1;
+}
+.disc-row { display: flex; flex-direction: column; gap: 6px; }
+.disc-meta { display: flex; justify-content: space-between; align-items: center; }
+.disc-name {
+  font-family: var(--font-head);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.disc-pct { font-size: 0.75rem; color: var(--text-muted); }
+.disc-track {
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.disc-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1.2s ease;
+  width: 0%;
+}
+.disc-fill.d { background: linear-gradient(90deg, var(--red), #ff8c00); }
+.disc-fill.i { background: linear-gradient(90deg, var(--amber), #ffe066); }
+.disc-fill.s { background: linear-gradient(90deg, #64a0ff, #a0c4ff); }
+.disc-fill.c { background: linear-gradient(90deg, var(--green), #00e5cc); }
+.disc-tag { font-size: 0.68rem; color: var(--text-muted); }
+
+/* ============================================================
+   RISK METER
+   ============================================================ */
+.risk-list {
+  list-style: none;
+  width: 100%;
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative; z-index: 1;
+}
+.risk-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--red);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.risk-icon { font-size: 1.2rem; }
+.risk-body { flex: 1; }
+.risk-title { font-family: var(--font-head); font-weight: 700; font-size: 0.9rem; }
+.risk-desc  { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+.risk-level {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: rgba(255,79,94,0.12);
+  color: var(--red);
+  border: 1px solid rgba(255,79,94,0.25);
+}
+
+/* ============================================================
+   LARGE CONTENT BLOCK (two-column)
+   ============================================================ */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  width: 100%;
+  max-width: 900px;
+  position: relative; z-index: 1;
+  align-items: center;
+}
+.col-left { text-align: left; }
+.col-left .slide-title { text-align: left; }
+.col-left .slide-subtitle { text-align: left; }
+
+/* ============================================================
+   CTA BUTTON (landing)
+   ============================================================ */
+.cta-btn {
+  margin-top: 36px;
+  padding: 14px 40px;
+  background: linear-gradient(135deg, var(--green), #00c85a);
+  color: #000;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  position: relative; z-index: 1;
+  transition: transform 0.2s, box-shadow 0.3s;
+  box-shadow: 0 0 0 rgba(57,255,132,0);
+}
+.cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(57,255,132,0.35);
+}
+
+/* ============================================================
+   PROFILE CARD (slide 2)
+   ============================================================ */
+.profile-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px 36px;
+  width: 100%;
+  max-width: 860px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 32px;
+  position: relative; z-index: 1;
+  overflow: hidden;
+}
+.profile-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 3px;
+  background: linear-gradient(90deg, var(--green), var(--amber));
+}
+.profile-avatar {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--green-dim), var(--amber-dim));
+  border: 2px solid var(--green);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-head);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--green);
+}
+.profile-info { display: flex; flex-direction: column; gap: 16px; }
+.profile-name {
+  font-family: var(--font-head);
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+.profile-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.profile-field { display: flex; flex-direction: column; gap: 2px; }
+.pf-label { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); }
+.pf-value { font-family: var(--font-head); font-size: 0.9rem; font-weight: 600; }
+
+/* ============================================================
+   SMART GRID (slide 5)
+   ============================================================ */
+.smart-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 700px;
+  position: relative; z-index: 1;
+}
+.smart-row {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 16px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+}
+.smart-letter {
+  font-family: var(--font-head);
+  font-size: 1.3rem;
+  font-weight: 800;
+  text-align: center;
+  background: linear-gradient(135deg, var(--green), var(--amber));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.smart-text strong { font-family: var(--font-head); font-size: 0.9rem; }
+.smart-text p { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+
+/* ============================================================
+   CHALLENGE CARD (slides 6-7)
+   ============================================================ */
+.challenge-visual {
+  width: 100%;
+  max-width: 860px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  position: relative; z-index: 1;
+  align-items: start;
+}
+.challenge-desc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+}
+.challenge-desc h3 {
+  font-family: var(--font-head);
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+.challenge-desc p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.7; }
+.challenge-bullets {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.challenge-bullets li {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  font-size: 0.85rem;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.challenge-bullets li span:first-child { color: var(--amber); font-size: 1rem; }
+
+/* ============================================================
+   STRATEGY STEPS (slide 11)
+   ============================================================ */
+.strategy-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 680px;
+  position: relative; z-index: 1;
+}
+.step-row {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 18px;
+  align-items: center;
+}
+.step-num {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--green-dim);
+  border: 1px solid rgba(57,255,132,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-head);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--green);
+}
+.step-content strong { font-family: var(--font-head); font-size: 0.9rem; }
+.step-content p { font-size: 0.78rem; color: var(--text-muted); }
+
+/* ============================================================
+   CLOSING SECTION
+   ============================================================ */
+.closing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 800px;
+  position: relative; z-index: 1;
+  margin-top: 8px;
+}
+.closing-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+}
+.closing-item .ci-icon { font-size: 1.6rem; margin-bottom: 10px; }
+.closing-item .ci-text { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+.closing-item .ci-title { font-family: var(--font-head); font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; }
+
+/* ============================================================
+   GLOW ORBS (decorative)
+   ============================================================ */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+.orb-green { background: rgba(57,255,132,0.06); }
+.orb-amber { background: rgba(255,179,64,0.06); }
+
+/* ============================================================
+   SLIDE-SPECIFIC OVERRIDES
+   ============================================================ */
+/* Landing */
+#slide-1 { gap: 4px; }
+.landing-logo {
+  font-family: var(--font-head);
+  font-size: 0.65rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  position: relative; z-index: 1;
+}
+.landing-heading {
+  font-family: var(--font-head);
+  font-size: clamp(3.5rem, 10vw, 7rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  text-align: center;
+  position: relative; z-index: 1;
+}
+.landing-heading .line1 { color: var(--text); }
+.landing-heading .line2 {
+  background: linear-gradient(135deg, var(--green) 0%, var(--amber) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.landing-sub {
+  font-size: 1rem;
+  color: var(--text-muted);
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  text-align: center;
+  margin-top: 12px;
+  position: relative; z-index: 1;
+}
+
+/* Animated underline for landing */
+.line-accent {
+  width: 60px; height: 2px;
+  background: var(--green);
+  margin: 20px auto;
+  position: relative; z-index: 1;
+  animation: pulse-width 2s ease-in-out infinite;
+}
+@keyframes pulse-width {
+  0%,100% { width: 60px; opacity: 1; }
+  50%      { width: 120px; opacity: 0.6; }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .slide { padding: 40px 24px; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .two-col { grid-template-columns: 1fr; gap: 20px; }
+  .profile-card { grid-template-columns: 1fr; }
+  .challenge-visual { grid-template-columns: 1fr; }
+  .matrix { grid-template-columns: 1fr 1fr; }
+  .closing-grid { grid-template-columns: 1fr; }
+  #nav-dots { display: none; }
+  .landing-heading { font-size: clamp(2.5rem, 12vw, 4rem); }
+}
+
+/* ============================================================
+   UTILITY
+   ============================================================ */
+.mt-8  { margin-top: 8px; }
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+.text-center { text-align: center; }
+.w-full { width: 100%; }
+.max-700 { max-width: 700px; }
+.max-860 { max-width: 860px; }
+.z1 { position: relative; z-index: 1; }
 </style>
 </head>
 
 <body>
 
-<!-- Loading Screen -->
+<!-- ============================================================
+     LOADING SCREEN
+     ============================================================ -->
 <div id="loader">
-    <h2>Initializing Growth Camp...</h2>
-    <div class="loader-bar">
-        <div class="loader-fill"></div>
+  <div class="loader-ring"></div>
+  <p class="loader-text">Initializing Growth Camp</p>
+</div>
+
+<!-- ============================================================
+     PROGRESS BAR
+     ============================================================ -->
+<div id="progress-bar"></div>
+
+<!-- ============================================================
+     SLIDE COUNTER
+     ============================================================ -->
+<div id="slide-counter"><span id="current-num">1</span> / <span id="total-num">17</span></div>
+
+<!-- ============================================================
+     NAVIGATION DOTS
+     ============================================================ -->
+<div id="nav-dots"></div>
+
+<!-- ============================================================
+     NAVIGATION ARROWS
+     ============================================================ -->
+<button class="nav-arrow" id="btn-prev" aria-label="Previous slide">&#8592;</button>
+<button class="nav-arrow" id="btn-next" aria-label="Next slide">&#8594;</button>
+
+<!-- ============================================================
+     SOUND TOGGLE (muted by default)
+     ============================================================ -->
+<button id="sound-btn">&#128263; Sound Off</button>
+
+<!-- ============================================================
+     SLIDES CONTAINER
+     ============================================================ -->
+<div id="slides-container">
+
+  <!-- ──────────────────────────────────────────────
+       SLIDE 1 – LANDING SCREEN
+       ────────────────────────────────────────────── -->
+  <section class="slide active" id="slide-1">
+    <div class="orb orb-green" style="width:500px;height:500px;top:-100px;left:-80px;"></div>
+    <div class="orb orb-amber" style="width:400px;height:400px;bottom:-100px;right:-80px;"></div>
+
+    <p class="landing-logo">Anthropic &nbsp;·&nbsp; Strategic Presentations &nbsp;·&nbsp; 2026</p>
+
+    <div class="landing-heading">
+      <div class="line1">Growth</div>
+      <div class="line2">Camp</div>
     </div>
-</div>
 
-<!-- Progress Bar -->
-<div id="progressBar"></div>
+    <div class="line-accent"></div>
 
-<!-- Sections -->
-<div class="section fade">
-    <h1>Growth Camp</h1>
-    <p>A Strategic Academic Journey</p>
-    <button onclick="scrollToNext()">Start Presentation</button>
-</div>
+    <p class="landing-sub">A Strategic Academic Journey &nbsp;·&nbsp; Hamdan Saeed</p>
 
-<div class="section fade">
-    <h1>Profile Overview</h1>
-    <p><span class="accent">Hamdan Saeed</span><br>
-    1st Semester<br>
-    Session 2026–2029<br>
-    Strong self-belief, needs direction</p>
-</div>
+    <button class="cta-btn" id="start-btn">Start Presentation</button>
+  </section>
 
-<div class="section fade">
-    <h1>Objective</h1>
-    <p>Establish a clear academic direction and build a strong foundation for long-term success.</p>
-</div>
+  <!-- ──────────────────────────────────────────────
+       SLIDE 2 – PROFILE OVERVIEW
+       ────────────────────────────────────────────── -->
+  <section class="slide" id="slide-2">
+    <p class="slide-tag">02 &nbsp;·&nbsp; Profile Overview</p>
+    <p class="slide-title" style="margin-bottom:20px;">Meet the <em>Key Performer</em></p>
 
-<div class="section fade">
-    <h1>Current State</h1>
-    <p>Confident mindset with high potential, but lacking structured planning and clarity.</p>
-</div>
+    <div class="profile-card">
+      <div>
+        <div class="profile-avatar">HS</div>
+      </div>
+      <div class="profile-info">
+        <div>
+          <div class="profile-name">Hamdan Saeed</div>
+          <div class="profile-tags" style="margin-top:8px;">
+            <span class="pill green">&#9679; Active Learner</span>
+            <span class="pill amber">&#9651; Rising Performer</span>
+          </div>
+        </div>
+        <div class="profile-grid">
+          <div class="profile-field">
+            <span class="pf-label">Academic Level</span>
+            <span class="pf-value">1st Semester</span>
+          </div>
+          <div class="profile-field">
+            <span class="pf-label">Session</span>
+            <span class="pf-value">2026 – 2029</span>
+          </div>
+          <div class="profile-field">
+            <span class="pf-label">Core Strength</span>
+            <span class="pf-value" style="color:var(--green);">Strong Self-Belief</span>
+          </div>
+          <div class="profile-field">
+            <span class="pf-label">Primary Challenge</span>
+            <span class="pf-value" style="color:var(--amber);">No Clear Study Direction</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<div class="section fade">
-    <h1>SMART Goals</h1>
-    <p>Specific direction<br>Measurable progress<br>Achievable targets<br>Relevant growth<br>Time-bound plan</p>
-</div>
+  <!-- ──────────────────────────────────────────────
+       SLIDE 3 – OBJECTIVE STATEMENT
+       ────────────────────────────────────────────── -->
+  <section class="slide" id="slide-3">
+    <div class="orb orb-green" style="width:600px;height:300px;top:50%;left:50%;transform:translate(-50%,-50%);"></div>
 
-<div class="section fade">
-    <h1>Challenge 1</h1>
-    <p>Procrastination affecting execution and consistency.</p>
-</div>
+    <p class="slide-tag">03 &nbsp;·&nbsp; Objective Statement</p>
+    <p class="slide-title">Define the <em>Destination</em></p>
+    <div class="divider"></div>
 
-<div class="section fade">
-    <h1>Challenge 2</h1>
-    <p>Perfectionism causing delays and overthinking.</p>
-</div>
+    <div class="grid-3 mt-24">
+      <div class="card green">
+        <span class="card-icon">🎯</span>
+        <div class="card-label">Long-Term Goal</div>
+        <div class="card-value">Academic Excellence</div>
+        <p class="card-desc">Achieve top-tier academic standing across all three years of the program.</p>
+      </div>
+      <div class="card amber">
+        <span class="card-icon">📈</span>
+        <div class="card-label">Growth Direction</div>
+        <div class="card-value">Structured Progress</div>
+        <p class="card-desc">Transform self-belief into a disciplined, measurable, semester-by-semester trajectory.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">🎓</span>
+        <div class="card-label">Final Target</div>
+        <div class="card-value">Graduation Ready</div>
+        <p class="card-desc">Exit university as a skilled, career-ready graduate with a strong academic record.</p>
+      </div>
+    </div>
+  </section>
 
-<div class="section fade">
-    <h1>Risk Zone</h1>
-    <p>Distractions, poor prioritization, and inefficient time usage.</p>
-</div>
+  <!-- ──────────────────────────────────────────────
+       SLIDE 4 – CURRENT STATE ANALYSIS
+       ────────────────────────────────────────────── -->
+  <section class="slide" id="slide-4">
+    <p class="slide-tag">04 &nbsp;·&nbsp; Current State Analysis</p>
+    <p class="slide-title">Where We <em>Stand Today</em></p>
 
-<div class="section fade">
-    <h1>Strategic Tool</h1>
-    <p>Eisenhower Matrix<br>Do | Schedule | Delegate | Eliminate</p>
-</div>
+    <div class="two-col mt-24">
+      <div>
+        <div class="card green" style="margin-bottom:16px;">
+          <span class="card-icon">💪</span>
+          <div class="card-label">Asset</div>
+          <div class="card-value">Confident Mindset</div>
+          <p class="card-desc">Hamdan enters university with a natural self-belief — a foundational leadership trait rarely seen at this stage.</p>
+        </div>
+        <div class="card amber">
+          <span class="card-icon">🧩</span>
+          <div class="card-label">Gap</div>
+          <div class="card-value">No Structured Path</div>
+          <p class="card-desc">Confidence without direction produces effort without output. The missing link is a clear academic roadmap.</p>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="height:100%;min-height:220px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:12px;">
+          <div style="font-size:3rem;">⚖️</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;">Current Equation</div>
+          <div style="font-size:0.85rem;color:var(--text-muted);line-height:1.7;">
+            <span style="color:var(--green);font-weight:600;">High Belief</span>
+            &nbsp;+&nbsp;
+            <span style="color:var(--red);font-weight:600;">Low Structure</span>
+            <br>= Unrealised Potential
+          </div>
+          <div class="pill amber" style="margin-top:8px;">Intervention Required</div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<div class="section fade">
-    <h1>Behavior Model</h1>
-    <p>DISC Framework<br>Dominance | Influence | Steadiness | Compliance</p>
-</div>
+  <!-- ──────────────────────────────────────────────
+       SLIDE 5 – GOAL FRAMEWORK (SMART)
+       ────────────────────────────────────────────── -->
+  <section class="slide" id="slide-5">
+    <p class="slide-tag">05 &nbsp;·&nbsp; Goal Framework</p>
+    <p class="slide-title">The <em>SMART</em> Blueprint</p>
 
-<div class="section fade">
-    <h1>Execution Strategy</h1>
-    <p>Align time management with behavioral strengths to maximize performance.</p>
-</div>
+    <div class="smart-list mt-24">
+      <div class="smart-row">
+        <div class="smart-letter">S</div>
+        <div class="smart-text">
+          <strong>Specific</strong>
+          <p>Identify and commit to a concrete academic target each semester — not vague improvement, but defined outcomes.</p>
+        </div>
+      </div>
+      <div class="smart-row">
+        <div class="smart-letter">M</div>
+        <div class="smart-text">
+          <strong>Measurable</strong>
+          <p>Track GPA, assignment completion rates, and study hours as quantifiable progress markers.</p>
+        </div>
+      </div>
+      <div class="smart-row">
+        <div class="smart-letter">A</div>
+        <div class="smart-text">
+          <strong>Achievable</strong>
+          <p>Set ambitious but realistic milestones; over-ambitious goals without scaffolding lead to burnout.</p>
+        </div>
+      </div>
+      <div class="smart-row">
+        <div class="smart-letter">R</div>
+        <div class="smart-text">
+          <strong>Relevant</strong>
+          <p>Align academic goals with personal values and long-term career aspirations.</p>
+        </div>
+      </div>
+      <div class="smart-row">
+        <div class="smart-letter">T</div>
+        <div class="smart-text">
+          <strong>Time-Bound</strong>
+          <p>Anchor every goal to a semester deadline; urgency drives execution.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<div class="section fade">
-    <h1>First Milestone</h1>
-    <p>End of Year 1<br>Strong academic base and improved habits.</p>
-</div>
+  <!-- ──────────────────────────────────────────────
+       SLIDE 6 – CHALLENGE #1: PROCRASTINATION
+       ────────────────────────────────────────────── -->
+  <section class="slide" id="slide-6">
+    <p class="slide-tag red">06 &nbsp;·&nbsp; Challenge #1</p>
+    <p class="slide-title"><em>Procrastination</em></p>
 
-<div class="section fade">
-    <h1>Mid Progress</h1>
-    <p>Increased clarity, discipline, and consistency in performance.</p>
-</div>
+    <div class="challenge-visual mt-24">
+      <div class="challenge-desc" style="border-top:3px solid var(--red);">
+        <h3 style="color:var(--red);">Delayed Execution</h3>
+        <p>Procrastination is not laziness — it is a misalignment between intention and action. Left unaddressed, it compounds into missed deadlines, last-minute cramming, and academic underperformance.</p>
+        <div style="margin-top:16px;">
+          <span class="pill red">High Impact Risk</span>
+        </div>
+      </div>
+      <ul class="challenge-bullets">
+        <li>
+          <span>⏰</span>
+          <span><strong>Time Deferral</strong> — Tasks pushed to the last moment, reducing quality of output.</span>
+        </li>
+        <li>
+          <span>📉</span>
+          <span><strong>Consistency Erosion</strong> — Irregular study habits lead to fragmented knowledge retention.</span>
+        </li>
+        <li>
+          <span>😰</span>
+          <span><strong>Stress Spiral</strong> — Accumulated work creates anxiety that further reduces performance.</span>
+        </li>
+        <li>
+          <span>🔁</span>
+          <span><strong>Cycle Reinforcement</strong> — Without intervention, the pattern repeats each semester.</span>
+        </li>
+      </ul>
+    </div>
+  </section>
 
-<div class="section fade">
-    <h1>Final Phase</h1>
-    <p>Focused execution with high efficiency and clear academic positioning.</p>
-</div>
+  <!-- ──────────────────────────────────────────────
+       SLIDE 7 – CHALLENGE #2: PERFECTIONISM
+       ────────────────────────────────────────────── -->
+  <section class="slide" id="slide-7">
+    <p class="slide-tag amber">07 &nbsp;·&nbsp; Challenge #2</p>
+    <p class="slide-title"><em>Perfectionism</em></p>
 
-<div class="section fade">
-    <h1>Critical Phase</h1>
-    <p>Managing academic pressure while maintaining performance consistency.</p>
-</div>
+    <div class="challenge-visual mt-24">
+      <div class="challenge-desc" style="border-top:3px solid var(--amber);">
+        <h3 style="color:var(--amber);">The Overthinking Trap</h3>
+        <p>Perfectionism masquerades as a strength but operates as a constraint. The pursuit of flawless output often results in paralysis — no submission beats a submitted draft.</p>
+        <div style="margin-top:16px;">
+          <span class="pill amber">Medium-High Risk</span>
+        </div>
+      </div>
+      <ul class="challenge-bullets">
+        <li>
+          <span>🔍</span>
+          <span><strong>Overthinking</strong> — Excessive analysis before starting leads to wasted planning time.</span>
+        </li>
+        <li>
+          <span>🚫</span>
+          <span><strong>Reduced Output</strong> — Fear of imperfection prevents submission of adequate work.</span>
+        </li>
+        <li>
+          <span>🧠</span>
+          <span><strong>Mental Bandwidth Drain</strong> — Energy spent perfecting minor details depletes focus.</span>
+        </li>
+        <li>
+          <span>📊</span>
+          <span><strong>Productivity Deficit</strong> — Fewer completed tasks despite high intellectual investment.</span>
+        </li>
+      </ul>
+    </div>
+  </section>
 
-<div class="section fade">
-    <h1>Future Outlook</h1>
-    <p>Graduation as a target and readiness for professional career growth.</p>
-</div>
+  <!-- ──────────────────────────────────────────────
+       SLIDE 8 – RISK ZONE
+       ────────────────────────────────────────────── -->
+  <section class="slide" id="slide-8">
+    <div class="orb orb-green" style="width:400px;height:400px;top:-80px;right:-80px;background:rgba(255,79,94,0.04);"></div>
 
-<div class="section fade">
-    <h1>Thank You</h1>
-    <p>Questions & Discussion</p>
-</div>
+    <p class="slide-tag red">08 &nbsp;·&nbsp; Risk Zone</p>
+    <p class="slide-title">Threats to <em>Momentum</em></p>
 
+    <ul class="risk-list mt-24">
+      <li class="risk-item">
+        <span class="risk-icon">⏳</span>
+        <div class="risk-body">
+          <div class="risk-title">Time Wastage</div>
+          <div class="risk-desc">Untracked hours drifting to low-value activities. Each lost hour compounds across the semester.</div>
+        </div>
+        <span class="risk-level">Critical</span>
+      </li>
+      <li class="risk-item">
+        <span class="risk-icon">📱</span>
+        <div class="risk-body">
+          <div class="risk-title">Digital Distractions</div>
+          <div class="risk-desc">Social media and passive consumption fragment attention, reducing deep-work capacity.</div>
+        </div>
+        <span class="risk-level">High</span>
+      </li>
+      <li class="risk-item">
+        <span class="risk-icon">🎯</span>
+        <div class="risk-body">
+          <div class="risk-title">Lack of Prioritization</div>
+          <div class="risk-desc">Treating all tasks as equal urgency leads to misallocated effort and missed high-impact deadlines.</div>
+        </div>
+        <span class="risk-level">High</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ──────────────────────────────────────────────
+       SLIDE 9 – EISENHOWER MATRIX
+       ────────────────────────────────────────────── -->
+  <section class="slide" id="slide-9">
+    <p class="slide-tag">09 &nbsp;·&nbsp; Strategic Tool</p>
+    <p class="slide-title">The <em>Eisenhower Matrix</em></p>
+
+    <div class="matrix mt-24">
+      <div class="matrix-cell do">
+        <div class="mc-icon">✅</div>
+        <div class="mc-label">DO</div>
+        <div class="mc-desc">Urgent + Important<br>Execute immediately</div>
+      </div>
+      <div class="matrix-cell sched">
+        <div class="mc-icon">📅</div>
+        <div class="mc-label">SCHEDULE</div>
+        <div class="mc-desc">Not Urgent + Important<br>Plan for later</div>
+      </div>
+      <div class="matrix-cell dele">
+        <div class="mc-icon">🤝</div>
+        <div class="mc-label">DELEGATE</div>
+        <div class="mc-desc">Urgent + Not Important<br>Assign or minimize</div>
+      </div>
+      <div class="matrix-cell elim">
+        <div class="mc-icon">🗑️</div>
+        <div class="mc-label">ELIMINATE</div>
+        <div class="mc-desc">Not Urgent + Not Important<br>Remove entirely</div>
+      </div>
+    </div>
+
+    <p class="slide-subtitle mt-24" style="font-size:0.8rem;">Apply this filter to every academic task — stop reacting, start deciding.</p>
+  </section>
+
+  <!-- ──────────────────────────────────────────────
+       SLIDE 10 – DISC BEHAVIORAL MODEL
+       ────────────────────────────────────────────── -->
+  <section class="slide" id="slide-10">
+    <p class="slide-tag">10 &nbsp;·&nbsp; Behavioral Insights</p>
+    <p class="slide-title">The <em>DISC</em> Model</p>
+
+    <div class="two-col mt-24">
+      <div class="disc-bars" id="disc-bars">
+        <div class="disc-row">
+          <div class="disc-meta">
+            <span class="disc-name" style="color:#ff4f5e;">D – Dominance</span>
+            <span class="disc-pct">72%</span>
+          </div>
+          <div class="disc-track"><div class="disc-fill d" data-width="72"></div></div>
+          <span class="disc-tag">Results-driven, decisive, bold — Hamdan's dominant trait</span>
+        </div>
+        <div class="disc-row">
+          <div class="disc-meta">
+            <span class="disc-name" style="color:var(--amber);">I – Influence</span>
+            <span class="disc-pct">60%</span>
+          </div>
+          <div class="disc-track"><div class="disc-fill i" data-width="60"></div></div>
+          <span class="disc-tag">Collaborative, enthusiastic, persuasive</span>
+        </div>
+        <div class="disc-row">
+          <div class="disc-meta">
+            <span class="disc-name" style="color:#64a0ff;">S – Steadiness</span>
+            <span class="disc-pct">45%</span>
+          </div>
+          <div class="disc-track"><div class="disc-fill s" data-width="45"></div></div>
+          <span class="disc-tag">Patient, consistent — area for development</span>
+        </div>
+        <div class="disc-row">
+          <div class="disc-meta">
+            <span class="disc-name" style="color:var(--green);">C – Compliance</span>
+            <span class="disc-pct">38%</span>
+          </div>
+          <div class="disc-track"><div class="disc-fill c" data-width="38"></div></div>
+          <span class="disc-tag">Detail-oriented accuracy — growth opportunity</span>
+        </div>
+      </div>
+      <div>
+        <div class="card green" style="margin-bottom:14px;">
+          <div class="card-label">Primary Profile</div>
+          <div class="card-value">D/I Type — The Driver</div>
+          <p class="card-desc">High confidence, action-oriented, naturally influential. Thrives under challenge, but needs structure to sustain output.</p>
+        </div>
+        <div class="card amber">
+          <div class="card-label">Strategic Implication</div>
+          <div class="card-value">Build Discipline Systems</div>
+          <p class="card-desc">D/I types perform best with external accountability frameworks — deadlines, check-ins, and milestone tracking.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────────────
+       SLIDE 11 – EXECUTION STRATEGY
+       ────────────────────────────────────────────── -->
+  <section class="slide" id="slide-11">
+    <p class="slide-tag">11 &nbsp;·&nbsp; Execution Strategy</p>
+    <p class="slide-title">Action Plan for <em>Results</em></p>
+
+    <div class="strategy-steps mt-24">
+      <div class="step-row">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <strong>Implement Weekly Study Blocks</strong>
+          <p>Reserve dedicated, distraction-free time slots in calendar — treated as non-negotiable commitments.</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <strong>Apply Eisenhower Matrix Daily</strong>
+          <p>Each morning: categorize tasks — execute the critical, schedule the important, cut the noise.</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <strong>Leverage D/I Behavioral Strengths</strong>
+          <p>Use natural confidence and social drive to stay engaged; pair with structured accountability systems.</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">04</div>
+        <div class="step-content">
+          <strong>Track Progress Bi-Weekly</strong>
+          <p>Review study hours, assignment scores, and SMART goal progress every two weeks — adjust accordingly.</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">05</div>
+        <div class="step-content">
+          <strong>Establish a "Done is Better Than Perfect" Protocol</strong>
+          <p>Counter perfectionism with submission-first thinking — iterate after, not before, completion.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────────────
+       SLIDE 12 – FIRST MILESTONE (Year 1)
+       ────────────────────────────────────────────── -->
+  <section class="slide" id="slide-12">
+    <p class="slide-tag green">12 &nbsp;·&nbsp; First Milestone</p>
+    <p class="slide-title">End of <em>Year One</em></p>
+
+    <div class="timeline mt-24">
+      <div class="timeline-step">
+        <div class="timeline-dot done">✓</div>
+        <div class="timeline-label"><strong>Sem 1</strong>Establish study routine & baseline habits</div>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-dot active">2</div>
+        <div class="timeline-label"><strong>Sem 2</strong>Build skill foundation & improve GPA</div>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-dot">3</div>
+        <div class="timeline-label"><strong>Year 2</strong>Deepen academic mastery</div>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-dot">4</div>
+        <div class="timeline-label"><strong>Year 3</strong>Advanced focus & graduation prep</div>
+      </div>
+    </div>
+
+    <div class="grid-3 mt-24" style="max-width:860px;">
+      <div class="card green">
+        <span class="card-icon">📚</span>
+        <div class="card-label">Target</div>
+        <div class="card-value">3.0+ GPA</div>
+        <p class="card-desc">Establish a strong academic baseline in Year 1.</p>
+      </div>
+      <div class="card amber">
+        <span class="card-icon">🛠️</span>
+        <div class="card-label">Skill Foundation</div>
+        <div class="card-value">Core Competencies</div>
+        <p class="card-desc">Research, critical thinking, time management, and communication.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">🤝</span>
+        <div class="card-label">Network</div>
+        <div class="card-value">Peer Ecosystem</div>
+        <p class="card-desc">Build a peer group that elevates academic standards and accountability.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────────────
+       SLIDE 13 – MID-PROGRESS EVALUATION
+       ────────────────────────────────────────────── -->
+  <section class="slide" id="slide-13">
+    <p class="slide-tag">13 &nbsp;·&nbsp; Mid-Progress Evaluation</p>
+    <p class="slide-title">Year 2 — <em>Measuring Growth</em></p>
+
+    <div class="grid-4 mt-24" style="max-width:900px;">
+      <div class="card green" style="text-align:center;">
+        <div class="card-icon" style="text-align:center;">📊</div>
+        <div class="card-label">Clarity Score</div>
+        <div class="card-value" style="font-size:1.5rem;">↑ 80%</div>
+        <p class="card-desc">Improved academic direction from Sem 1 baseline.</p>
+      </div>
+      <div class="card green" style="text-align:center;">
+        <div class="card-icon">⏱️</div>
+        <div class="card-label">Discipline Index</div>
+        <div class="card-value" style="font-size:1.5rem;">↑ 65%</div>
+        <p class="card-desc">Better consistency in study schedules.</p>
+      </div>
+      <div class="card amber" style="text-align:center;">
+        <div class="card-icon">🎯</div>
+        <div class="card-label">Goal Adherence</div>
+        <div class="card-value" style="font-size:1.5rem;">70%</div>
+        <p class="card-desc">SMART goals met on schedule — room for improvement.</p>
+      </div>
+      <div class="card amber" style="text-align:center;">
+        <div class="card-icon">🧠</div>
+        <div class="card-label">Focus Quality</div>
+        <div class="card-value" style="font-size:1.5rem;">↑ 55%</div>
+        <p class="card-desc">Reduced distraction incidents during study sessions.</p>
+      </div>
+    </div>
+
+    <p class="slide-subtitle mt-24">Year 2 is the inflection point — patterns set here define the trajectory to graduation.</p>
+  </section>
+
+  <!-- ──────────────────────────────────────────────
+       SLIDE 14 – FINAL PHASE PREPARATION
+       ────────────────────────────────────────────── -->
+  <section class="slide" id="slide-14">
+    <p class="slide-tag">14 &nbsp;·&nbsp; Final Phase Preparation</p>
+    <p class="slide-title">Year 3 — <em>Advanced Positioning</em></p>
+
+    <div class="two-col mt-24">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card green">
+          <span class="card-icon">🔬</span>
+          <div class="card-label">Academic Depth</div>
+          <div class="card-value">Specialization Focus</div>
+          <p class="card-desc">Year 3 demands mastery, not just completion. Identify strongest subject areas and dominate them.</p>
+        </div>
+        <div class="card amber">
+          <span class="card-icon">📋</span>
+          <div class="card-label">Thesis / Final Project</div>
+          <div class="card-value">Capstone Readiness</div>
+          <p class="card-desc">Begin structuring final deliverables by end of Year 2 to avoid last-minute pressure.</p>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card">
+          <span class="card-icon">🏆</span>
+          <div class="card-label">Positioning</div>
+          <div class="card-value">Top Quartile Target</div>
+          <p class="card-desc">Consistent performance in Year 3 positions Hamdan for distinction-level graduation outcomes.</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">💼</span>
+          <div class="card-label">Career Alignment</div>
+          <div class="card-value">Industry Readiness</div>
+          <p class="card-desc">Begin connecting academic work to real-world application — internships, projects, networks.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────────────
+       SLIDE 15 – CRITICAL CHALLENGES AHEAD
+       ────────────────────────────────────────────── -->
+  <section class="slide" id="slide-15">
+    <div class="orb" style="width:500px;height:400px;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,79,94,0.04);filter:blur(80px);"></div>
+
+    <p class="slide-tag red">15 &nbsp;·&nbsp; Critical Challenges Ahead</p>
+    <p class="slide-title">Final Year <em>Pressure Points</em></p>
+
+    <div class="grid-2 mt-24" style="max-width:800px;">
+      <div class="card red" style="border-color:rgba(255,79,94,0.3);">
+        <span class="card-icon">📝</span>
+        <div class="card-label">Academic Pressure</div>
+        <div class="card-value">Peak Complexity</div>
+        <p class="card-desc">Final year coursework intensifies. Advanced subjects demand sustained, deep-work capacity built over Years 1–2.</p>
+      </div>
+      <div class="card red" style="border-color:rgba(255,79,94,0.3);">
+        <span class="card-icon">📉</span>
+        <div class="card-label">Performance Consistency</div>
+        <div class="card-value">No Room for Drift</div>
+        <p class="card-desc">A single inconsistent semester in Year 3 can significantly impact cumulative GPA and graduation standing.</p>
+      </div>
+      <div class="card red" style="border-color:rgba(255,79,94,0.3);">
+        <span class="card-icon">🔋</span>
+        <div class="card-label">Energy Management</div>
+        <div class="card-value">Burnout Prevention</div>
+        <p class="card-desc">Sustained performance requires intentional recovery — sleep, breaks, and mental decompression are non-negotiable.</p>
+      </div>
+      <div class="card red" style="border-color:rgba(255,79,94,0.3);">
+        <span class="card-icon">🌀</span>
+        <div class="card-label">Distraction Resurgence</div>
+        <div class="card-value">Maintain Discipline</div>
+        <p class="card-desc">Under peak pressure, old behavioral patterns can resurface. Maintain the systems built in earlier years.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────────────
+       SLIDE 16 – FUTURE OUTLOOK
+       ────────────────────────────────────────────── -->
+  <section class="slide" id="slide-16">
+    <div class="orb orb-green" style="width:500px;height:500px;top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+
+    <p class="slide-tag green">16 &nbsp;·&nbsp; Future Outlook</p>
+    <p class="slide-title">Beyond the <em>Horizon</em></p>
+
+    <div class="grid-3 mt-24" style="max-width:860px;">
+      <div class="card green">
+        <span class="card-icon">🎓</span>
+        <div class="card-label">Graduation Target</div>
+        <div class="card-value">2029</div>
+        <p class="card-desc">Three years of disciplined, structured effort culminating in a high-distinction graduation.</p>
+      </div>
+      <div class="card amber">
+        <span class="card-icon">🌍</span>
+        <div class="card-label">Career Readiness</div>
+        <div class="card-value">Industry Entry</div>
+        <p class="card-desc">Exit as a skilled professional — not just a degree holder — with portfolio, network, and capabilities in place.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">🚀</span>
+        <div class="card-label">Long-Term Vision</div>
+        <div class="card-value">Leadership Path</div>
+        <p class="card-desc">The D/I behavioral profile positions Hamdan naturally for leadership roles in any professional domain.</p>
+      </div>
+    </div>
+
+    <div class="stat-block mt-24">
+      <div style="font-family:var(--font-head);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Journey Duration</div>
+      <div style="display:flex;gap:32px;align-items:center;justify-content:center;">
+        <div class="stat-block"><div class="stat-num">3</div><div class="stat-label">Years</div></div>
+        <div style="color:var(--text-muted);font-size:1.5rem;">·</div>
+        <div class="stat-block"><div class="stat-num">6</div><div class="stat-label">Semesters</div></div>
+        <div style="color:var(--text-muted);font-size:1.5rem;">·</div>
+        <div class="stat-block"><div class="stat-num">∞</div><div class="stat-label">Potential</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────────────
+       SLIDE 17 – CLOSING / Q&A
+       ────────────────────────────────────────────── -->
+  <section class="slide" id="slide-17">
+    <div class="orb orb-green" style="width:600px;height:300px;bottom:-100px;left:-100px;"></div>
+    <div class="orb orb-amber" style="width:400px;height:300px;top:-80px;right:-80px;"></div>
+
+    <p class="slide-tag">17 &nbsp;·&nbsp; Closing</p>
+
+    <div class="landing-heading" style="font-size:clamp(2rem,5vw,3.5rem);margin-bottom:16px;">
+      <div class="line1">The Journey</div>
+      <div class="line2">Starts Now</div>
+    </div>
+
+    <div class="line-accent"></div>
+
+    <p class="slide-subtitle" style="max-width:540px;">Growth Camp is not a destination — it is a systematic, daily commitment to becoming the academic leader Hamdan is already capable of being.</p>
+
+    <div class="closing-grid">
+      <div class="closing-item">
+        <div class="ci-icon">📌</div>
+        <div class="ci-title">Key Takeaway</div>
+        <div class="ci-text">Self-belief is the foundation. Structure is the multiplier. Discipline is the engine.</div>
+      </div>
+      <div class="closing-item" style="border-color:rgba(57,255,132,0.2);">
+        <div class="ci-icon">❓</div>
+        <div class="ci-title">Open Discussion</div>
+        <div class="ci-text">What is the single highest-leverage action Hamdan can take this week?</div>
+      </div>
+      <div class="closing-item">
+        <div class="ci-icon">📞</div>
+        <div class="ci-title">Next Step</div>
+        <div class="ci-text">Commit to a study schedule for Semester 1 before the week ends.</div>
+      </div>
+    </div>
+
+    <div class="pill green mt-24 z1" style="font-size:0.8rem;padding:8px 20px;">
+      ✦ &nbsp; Growth Camp — 2026–2029 &nbsp; ✦
+    </div>
+  </section>
+
+</div><!-- /slides-container -->
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
 <script>
-/* =========================
-   LOADER
-========================= */
-window.onload = () => {
-    setTimeout(() => {
-        document.getElementById("loader").style.display = "none";
-    }, 2000);
-};
+/* ── State ─────────────────────────────────────────── */
+const TOTAL_SLIDES = 17;
+let current = 1;
+let animating = false;
+let soundOn = false;
 
-/* =========================
-   SCROLL ANIMATION
-========================= */
-const sections = document.querySelectorAll('.fade');
+/* ── DOM refs ───────────────────────────────────────── */
+const loader       = document.getElementById('loader');
+const progressBar  = document.getElementById('progress-bar');
+const currentNum   = document.getElementById('current-num');
+const totalNum     = document.getElementById('total-num');
+const navDots      = document.getElementById('nav-dots');
+const btnPrev      = document.getElementById('btn-prev');
+const btnNext      = document.getElementById('btn-next');
+const soundBtn     = document.getElementById('sound-btn');
+const startBtn     = document.getElementById('start-btn');
 
-const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-        if(entry.isIntersecting){
-            entry.target.classList.add('active');
-        }
-    });
-}, { threshold: 0.3 });
+/* ── Set total ──────────────────────────────────────── */
+totalNum.textContent = TOTAL_SLIDES;
 
-sections.forEach(sec => observer.observe(sec));
-
-/* =========================
-   PROGRESS BAR
-========================= */
-window.onscroll = () => {
-    let winScroll = document.documentElement.scrollTop;
-    let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-    let scrolled = (winScroll / height) * 100;
-    document.getElementById("progressBar").style.width = scrolled + "%";
-};
-
-/* =========================
-   START BUTTON SCROLL
-========================= */
-function scrollToNext() {
-    window.scrollTo({
-        top: window.innerHeight,
-        behavior: "smooth"
-    });
+/* ── Build nav dots ─────────────────────────────────── */
+for (let i = 1; i <= TOTAL_SLIDES; i++) {
+  const dot = document.createElement('div');
+  dot.className = 'dot' + (i === 1 ? ' active' : '');
+  dot.dataset.slide = i;
+  dot.title = 'Slide ' + i;
+  dot.addEventListener('click', () => goTo(i));
+  navDots.appendChild(dot);
 }
+
+/* ── Loading screen ─────────────────────────────────── */
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    loader.classList.add('hidden');
+  }, 1400);
+});
+
+/* ── CTA button jumps to slide 2 ────────────────────── */
+startBtn.addEventListener('click', () => goTo(2));
+
+/* ── Navigate ───────────────────────────────────────── */
+function goTo(n) {
+  if (animating || n === current || n < 1 || n > TOTAL_SLIDES) return;
+  animating = true;
+
+  const prev = document.getElementById('slide-' + current);
+  const next = document.getElementById('slide-' + n);
+
+  /* exit current */
+  prev.classList.remove('active');
+  prev.classList.add('exit');
+
+  /* small delay so exit animation runs */
+  setTimeout(() => {
+    prev.classList.remove('exit');
+    next.classList.add('active');
+    current = n;
+    updateUI();
+    animating = false;
+
+    /* trigger DISC bars if on slide 10 */
+    if (n === 10) animateDiscBars();
+  }, 400);
+}
+
+function updateUI() {
+  /* progress bar */
+  const pct = ((current - 1) / (TOTAL_SLIDES - 1)) * 100;
+  progressBar.style.width = pct + '%';
+
+  /* counter */
+  currentNum.textContent = current;
+
+  /* dots */
+  document.querySelectorAll('.dot').forEach(d => {
+    d.classList.toggle('active', parseInt(d.dataset.slide) === current);
+  });
+
+  /* arrow visibility */
+  btnPrev.style.opacity = current === 1 ? '0.2' : '1';
+  btnNext.style.opacity = current === TOTAL_SLIDES ? '0.2' : '1';
+}
+
+/* ── Arrow buttons ──────────────────────────────────── */
+btnPrev.addEventListener('click', () => goTo(current - 1));
+btnNext.addEventListener('click', () => goTo(current + 1));
+
+/* ── Keyboard navigation ────────────────────────────── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+    e.preventDefault();
+    goTo(current + 1);
+  }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    goTo(current - 1);
+  }
+});
+
+/* ── Touch / swipe support ──────────────────────────── */
+let touchStartX = 0;
+document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 50) dx < 0 ? goTo(current + 1) : goTo(current - 1);
+});
+
+/* ── Sound toggle (visual only — muted by default) ──── */
+soundBtn.addEventListener('click', () => {
+  soundOn = !soundOn;
+  soundBtn.textContent = soundOn ? '🔊 Sound On' : '🔇 Sound Off';
+});
+
+/* ── DISC bar animation ─────────────────────────────── */
+function animateDiscBars() {
+  document.querySelectorAll('.disc-fill').forEach(bar => {
+    bar.style.width = '0%';
+    setTimeout(() => {
+      bar.style.width = bar.dataset.width + '%';
+    }, 200);
+  });
+}
+
+/* ── Initialise UI state ────────────────────────────── */
+updateUI();
 </script>
 
 </body>
